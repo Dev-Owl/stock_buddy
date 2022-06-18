@@ -2,9 +2,12 @@ import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/create_export_record.dart';
 import 'package:stock_buddy/models/export_record.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
+import 'package:stock_buddy/repository/depot_repository.dart';
 import 'package:stock_buddy/utils/ing_diba_export_reader.dart';
 import 'package:stock_buddy/utils/model_converter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+typedef UserActionNeededCallback<T> = Future<T> Function();
 
 class ExportRepositories extends BaseRepository {
   Future<List<ExportRecord>> getAllExports() async {
@@ -27,10 +30,22 @@ class ExportRepositories extends BaseRepository {
     return handleResponse(response, []);
   }
 
-  Future<ExportRecord?> importNewData(String pathToExportFile) async {
+  Future<ExportRecord?> importNewData(
+    String pathToExportFile,
+    UserActionNeededCallback<String> missingRepoNameQuestion,
+  ) async {
     final reader = ExportReader();
     try {
       final result = await reader.parseFile(pathToExportFile);
+      final depotRepo = DepotRepository();
+      final repoID =
+          await depotRepo.getRepositoryIdByNumber(result.depotNumber);
+      if (repoID == null) {
+        var newRepoName = await missingRepoNameQuestion();
+        if (newRepoName.isEmpty) {
+          newRepoName = result.customerName;
+        }
+      }
 
       final totalWinLoss = result.lineItems.fold<double>(
           0, (currentValue, e) => currentValue + e.currentWinLoss);

@@ -206,7 +206,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           );
         });
-    final result = await exportRepo.importNewData(path);
+    final result = await exportRepo.importNewData(
+        path, () async => "Test"); //TODO ask user for actual name
     if (!mounted) return;
     Navigator.of(context).pop();
 
