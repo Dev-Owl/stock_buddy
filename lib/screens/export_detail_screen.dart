@@ -2,14 +2,16 @@ import 'package:advanced_datatable/datatable.dart';
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:go_router/go_router.dart';
 import 'package:stock_buddy/models/export_line_item.dart';
 import 'package:stock_buddy/repository/export_line_repository.dart';
-import 'package:stock_buddy/screens/report_screen.dart';
 import 'package:stock_buddy/utils/data_cell_helper.dart';
 
 class ExportDetailScreen extends StatefulWidget {
   final String exportId;
-  const ExportDetailScreen({required this.exportId, Key? key})
+  final String depotId;
+  const ExportDetailScreen(
+      {required this.exportId, required this.depotId, Key? key})
       : super(key: key);
 
   @override
@@ -251,15 +253,12 @@ class _ExportDetailScreenState extends State<ExportDetailScreen> {
                 (e) => e.isin,
               )
               .toList();
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ReportingScreen(
-                exportId: widget.exportId,
-                lineItemsIsin: rowsForAnalytics,
-              ),
-            ),
+          context.goNamed(
+            'reporting',
+            params: {
+              'depotNumber': widget.depotId,
+            },
+            extra: _source.selectedRows,
           );
         },
       ),

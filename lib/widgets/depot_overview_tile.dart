@@ -45,7 +45,14 @@ class DepotOverviewTile extends StatelessWidget {
         children: [
           // A SlidableAction can have an icon and/or a label.
           SlidableAction(
-            onPressed: (_) {},
+            onPressed: (_) {
+              context.goNamed(
+                'reporting_overview',
+                params: {
+                  'depotNumber': row.id,
+                },
+              );
+            },
             backgroundColor: Colors.green,
             icon: Icons.area_chart_outlined,
             label: 'Report',

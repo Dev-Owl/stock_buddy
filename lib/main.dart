@@ -6,6 +6,7 @@ import 'package:stock_buddy/screens/dashboard_screen.dart';
 import 'package:stock_buddy/screens/export_detail_screen.dart';
 import 'package:stock_buddy/screens/export_overview_screen.dart';
 import 'package:stock_buddy/screens/login_screen.dart';
+import 'package:stock_buddy/screens/report_screen.dart';
 
 /*
     1. Connect to supabase [X]
@@ -66,8 +67,17 @@ class StockBuddy extends StatelessWidget {
               path: 'export/:depotNumber/details/:exportId',
               builder: (context, state) => ExportDetailScreen(
                 exportId: state.params['exportId']!,
+                depotId: state.params['depotNumber']!,
               ),
-            )
+            ),
+            GoRoute(
+                name: 'reporting_overview',
+                path: 'reporting/:depotNumber',
+                builder: (context, state) {
+                  return ReportingScreen(
+                    depotId: state.params['depotNumber']!,
+                  );
+                }),
           ],
         ),
         GoRoute(
