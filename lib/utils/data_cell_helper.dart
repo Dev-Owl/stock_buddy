@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stock_buddy/utils/text_helper.dart';
 
 class CellHelper {
   static DataCell textCell(
@@ -18,21 +19,14 @@ class CellHelper {
     int decimalPlaces = 2,
     BuildContext? context,
   }) {
-    TextStyle? style;
-    if (colorCode) {
-      assert(context != null);
-      final isNegative = amount < 0;
-      style = Theme.of(context!).textTheme.bodyMedium!.copyWith(
-            color: isNegative ? Colors.redAccent : Colors.green,
-          );
-    }
-
-    final formatedString =
-        "${amount.toStringAsFixed(decimalPlaces)}$decoration";
-
-    return textCell(
-      formatedString,
-      style: style,
+    return DataCell(
+      TextHelper.number(
+        amount,
+        decoration: decoration,
+        colorCode: colorCode,
+        context: context,
+        decimalPlaces: decimalPlaces,
+      ),
     );
   }
 }

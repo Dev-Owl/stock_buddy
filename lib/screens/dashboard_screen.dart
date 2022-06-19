@@ -2,10 +2,12 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:stock_buddy/models/export_record.dart';
+import 'package:stock_buddy/models/database_depot.dart';
+import 'package:stock_buddy/repository/depot_repository.dart';
 import 'package:stock_buddy/repository/export_repository.dart';
+import 'package:stock_buddy/utils/duplicate_export_exception.dart';
 import 'package:stock_buddy/utils/snackbar_extension.dart';
-import 'package:stock_buddy/widgets/export_overview_tile.dart';
+import 'package:stock_buddy/widgets/depot_overview_tile.dart';
 import 'package:stock_buddy/widgets/text_confirm.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -16,159 +18,126 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  final exportRepo = ExportRepositories();
-  List<ExportRecord> _data = [];
+  List<DataDepot> _data = [];
+
+  late final Future<void> _initialLoad;
+  var _firstLoad = true;
+  final _repo = DepotRepository();
+
   bool _dragging = false;
-  bool _intialLoadDone = false;
-  late final Future<void> _initialFuture;
-  Future<void> _initialLoad() async {
-    if (_intialLoadDone) {
-      return;
-    }
-    _intialLoadDone = true;
-    _data = await exportRepo.getAllExports();
-  }
 
   @override
   void initState() {
-    _initialFuture = _initialLoad();
     super.initState();
+    _initialLoad = _loadData();
+  }
+
+  Future<void> _loadData() async {
+    _data = await _repo.getAllDepots();
+    if (_firstLoad) {
+      _firstLoad = false;
+    } else {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-      ),
-      body: DropTarget(
-        onDragDone: (detail) {
-          if (detail.files.isNotEmpty) {
-            _addNewExport(detail.files.first.path);
-          }
-        },
-        onDragEntered: (detail) {
-          setState(() {
-            _dragging = true;
-          });
-        },
-        onDragExited: (detail) {
-          setState(() {
-            _dragging = false;
-          });
-        },
-        child: Stack(
-          children: [
-            FutureBuilder<void>(
-              future: _initialFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (_data.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          CircleAvatar(
-                            radius: 60,
-                            child: FaIcon(
-                              FontAwesomeIcons.piggyBank,
-                              size: 60,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 15,
-                          ),
-                          Text('No data found')
-                        ],
+      appBar: AppBar(title: const Text('Dashboard')),
+      body: FutureBuilder<void>(
+        future: _initialLoad,
+        builder: (context, snapShot) {
+          if (snapShot.connectionState == ConnectionState.done) {
+            if (_data.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    CircleAvatar(
+                      radius: 60,
+                      child: FaIcon(
+                        FontAwesomeIcons.piggyBank,
+                        size: 60,
                       ),
-                    );
-                  }
-                  return RefreshIndicator(
-                    onRefresh: _loadData,
-                    child: ListView.builder(
-                        itemCount: _data.length,
-                        itemBuilder: (context, index) {
-                          final currentRow = _data[index];
-                          return ExportOverviewListTile(
-                            data: currentRow,
-                            onDelteCallback: () {
-                              // set up the buttons
-                              Widget cancelButton = TextButton(
-                                child: const Text("Cancel"),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              );
-                              Widget continueButton = TextButton(
-                                child: const Text("Delete"),
-                                onPressed: () async {
-                                  await exportRepo.deleteExport(currentRow.id);
-                                  if (!mounted) return;
-                                  Navigator.of(context).pop();
-                                  _loadData();
-                                },
-                              );
-                              // set up the AlertDialog
-                              AlertDialog alert = AlertDialog(
-                                title: const Text("Please confirm"),
-                                content:
-                                    const Text("The export will be deleted!"),
-                                actions: [
-                                  cancelButton,
-                                  continueButton,
-                                ],
-                              );
-                              // show the dialog
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return alert;
-                                },
-                              );
-                            },
-                          );
-                        }),
-                  );
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
+                    ),
+                    SizedBox(
+                      height: 15,
+                    ),
+                    Text('No data found')
+                  ],
+                ),
+              );
+            }
+            return DropTarget(
+              onDragDone: (detail) {
+                if (detail.files.isNotEmpty) {
+                  _addNewExport(detail.files.first.path);
                 }
               },
-            ),
-            if (_dragging)
-              Align(
-                alignment: Alignment.center,
-                child: SizedBox.square(
-                  dimension: 250,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          CircleAvatar(
-                            radius: 60,
-                            child: FaIcon(
-                              FontAwesomeIcons.plus,
-                              size: 60,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 15,
-                          ),
-                          Text('Drop file here')
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+              onDragEntered: (detail) {
+                setState(() {
+                  _dragging = true;
+                });
+              },
+              onDragExited: (detail) {
+                setState(() {
+                  _dragging = false;
+                });
+              },
+              child: RefreshIndicator(
+                onRefresh: _loadData,
+                child: ListView.builder(
+                    itemCount: _data.length,
+                    itemBuilder: (context, index) {
+                      final currentRow = _data[index];
+                      return DepotOverviewTile(
+                        row: currentRow,
+                        onDelteCallback: () {
+                          // set up the buttons
+                          Widget cancelButton = TextButton(
+                            child: const Text("Cancel"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          );
+                          Widget continueButton = TextButton(
+                            child: const Text("Delete"),
+                            onPressed: () async {
+                              await _repo.deleteDepot(currentRow.id);
+                              if (!mounted) return;
+                              Navigator.of(context).pop();
+                              _loadData();
+                            },
+                          );
+                          // set up the AlertDialog
+                          AlertDialog alert = AlertDialog(
+                            title: const Text("Please confirm"),
+                            content: const Text(
+                                "The depo and ALL related data will be DELETED!"),
+                            actions: [
+                              cancelButton,
+                              continueButton,
+                            ],
+                          );
+                          // show the dialog
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return alert;
+                            },
+                          );
+                        },
+                      );
+                    }),
               ),
-          ],
-        ),
+            );
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _pickExportFile,
@@ -207,32 +176,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           );
         });
-    final result = await exportRepo.importNewData(
-      path,
-      () {
-        return showTextConfirm(context, 'New depot?',
-            inputPlacholder: 'Enter depot name',
-            addtionalText:
-                'Looks like this is a new depot, please provide a name');
-      },
-    );
+
+    try {
+      await ExportRepositories().importNewData(
+        path,
+        () {
+          return showTextConfirm(context, 'New depot?',
+              inputPlacholder: 'Enter depot name',
+              addtionalText:
+                  'Looks like this is a new depot, please provide a name');
+        },
+      );
+
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      _loadData();
+    } on DuplicateExportException {
+      context.showErrorSnackBar(message: 'This export is already imported');
+    } catch (ex) {
+      context.showErrorSnackBar(
+          message: 'Something went wrong importing the file');
+    }
     if (!mounted) return;
     Navigator.of(context).pop();
-
-    if (result != null) {
-      setState(() {
-        _data.add(result);
-        _data.sort(((a, b) => a.exportDate.compareTo(b.exportDate)));
-      });
-    } else {
-      context.showErrorSnackBar(message: 'Unable to import this file');
-    }
-  }
-
-  Future<void> _loadData() async {
-    final newData = await exportRepo.getAllExports();
-    setState(() {
-      _data = newData;
-    });
   }
 }

@@ -53,6 +53,7 @@ class ExportOverviewListTile extends StatelessWidget {
             'export_details',
             params: {
               'exportId': data.id,
+              'depotNumber': data.depotId,
             },
           );
         },

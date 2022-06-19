@@ -3,6 +3,7 @@ import 'package:stock_buddy/models/database_depot.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
 import 'package:stock_buddy/utils/data_contract_helper.dart';
 import 'package:stock_buddy/utils/model_converter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DepotRepository extends BaseRepository {
   Future<String?> getRepositoryIdByNumber(String number) async {
@@ -28,5 +29,27 @@ class DepotRepository extends BaseRepository {
         )
         .execute();
     return handleNeverNullResponse<DataDepot>(response);
+  }
+
+  Future<List<DataDepot>> getAllDepots() async {
+    final response = await supabase
+        .rpc('getdepotstats')
+        .withConverter((data) => ModelConverter.modelList(
+            data, (singleElement) => DataDepot.fromJson(singleElement)))
+        .execute();
+    return handleResponse(response, []);
+  }
+
+  Future<bool> deleteDepot(String id) async {
+    try {
+      final result = await supabase
+          .from('depots')
+          .delete(returning: ReturningOption.minimal)
+          .match({'id': id}).execute();
+      handleNoValueResponse(result);
+      return true;
+    } catch (ex) {
+      return false;
+    }
   }
 }

@@ -52,6 +52,7 @@ class ExportLineRepository extends BaseRepository {
       final response = await supabase
           .from("line_items")
           .select('id')
+          .eq("export_id", exportId)
           .execute(count: CountOption.exact);
       handleNoValueResponse(response);
       _totalCache[exportId] = response.count ?? 0;

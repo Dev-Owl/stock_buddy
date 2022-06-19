@@ -9,9 +9,19 @@ class DataDepot extends BaseDatabaseModel {
 
   final String name;
   final String number;
-  @JsonKey(toJson: toNull, includeIfNull: false, defaultValue: 0)
+  @JsonKey(
+    toJson: toNull,
+    includeIfNull: false,
+    defaultValue: 0,
+    name: 'totalexports',
+  )
   final int totalExports; //total amount of exports
-  @JsonKey(toJson: toNull, includeIfNull: false, defaultValue: 0)
+  @JsonKey(
+    toJson: toNull,
+    includeIfNull: false,
+    defaultValue: 0,
+    name: 'totalgainloss',
+  )
   final double totalGainLoss; //from last export sum
 
   DataDepot(

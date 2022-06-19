@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/screens/dashboard_screen.dart';
 import 'package:stock_buddy/screens/export_detail_screen.dart';
+import 'package:stock_buddy/screens/export_overview_screen.dart';
 import 'package:stock_buddy/screens/login_screen.dart';
 
 /*
@@ -54,8 +55,15 @@ class StockBuddy extends StatelessWidget {
           builder: (context, state) => const DashboardScreen(),
           routes: [
             GoRoute(
+              name: 'export_overview',
+              path: 'export/:depotNumber',
+              builder: (context, state) => ExportOverviewScreen(
+                depotId: state.params['depotNumber']!,
+              ),
+            ),
+            GoRoute(
               name: 'export_details',
-              path: 'exports/:exportId',
+              path: 'export/:depotNumber/details/:exportId',
               builder: (context, state) => ExportDetailScreen(
                 exportId: state.params['exportId']!,
               ),
