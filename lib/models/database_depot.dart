@@ -5,9 +5,13 @@ part 'database_depot.g.dart';
 
 @JsonSerializable()
 class DataDepot extends BaseDatabaseModel {
+  static toNull(_) => null;
+
   final String name;
   final String number;
+  @JsonKey(toJson: toNull, includeIfNull: false, defaultValue: 0)
   final int totalExports; //total amount of exports
+  @JsonKey(toJson: toNull, includeIfNull: false, defaultValue: 0)
   final double totalGainLoss; //from last export sum
 
   DataDepot(
@@ -19,6 +23,10 @@ class DataDepot extends BaseDatabaseModel {
     this.totalExports,
     this.totalGainLoss,
   ) : super(createdAt, id, ownerId);
+
+  DataDepot.forInsert(this.name, this.number,
+      {this.totalExports = 0, this.totalGainLoss = 0})
+      : super(DateTime.now(), '', '');
 
   factory DataDepot.fromJson(Map<String, dynamic> json) =>
       _$DataDepotFromJson(json);

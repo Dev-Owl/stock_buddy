@@ -6,6 +6,7 @@ import 'package:stock_buddy/models/export_record.dart';
 import 'package:stock_buddy/repository/export_repository.dart';
 import 'package:stock_buddy/utils/snackbar_extension.dart';
 import 'package:stock_buddy/widgets/export_overview_tile.dart';
+import 'package:stock_buddy/widgets/text_confirm.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -207,7 +208,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           );
         });
     final result = await exportRepo.importNewData(
-        path, () async => "Test"); //TODO ask user for actual name
+      path,
+      () {
+        return showTextConfirm(context, 'New depot?',
+            inputPlacholder: 'Enter depot name',
+            addtionalText:
+                'Looks like this is a new depot, please provide a name');
+      },
+    );
     if (!mounted) return;
     Navigator.of(context).pop();
 

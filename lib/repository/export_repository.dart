@@ -38,13 +38,16 @@ class ExportRepositories extends BaseRepository {
     try {
       final result = await reader.parseFile(pathToExportFile);
       final depotRepo = DepotRepository();
-      final repoID =
-          await depotRepo.getRepositoryIdByNumber(result.depotNumber);
+      var repoID = await depotRepo.getRepositoryIdByNumber(result.depotNumber);
       if (repoID == null) {
-        var newRepoName = await missingRepoNameQuestion();
-        if (newRepoName.isEmpty) {
-          newRepoName = result.customerName;
+        var newDepotName = await missingRepoNameQuestion();
+        if (newDepotName.isEmpty) {
+          newDepotName = result.customerName;
         }
+        final depotRepo = DepotRepository();
+        repoID =
+            (await depotRepo.createNewDepot(newDepotName, result.depotNumber))
+                .id;
       }
 
       final totalWinLoss = result.lineItems.fold<double>(
@@ -61,6 +64,7 @@ class ExportRepositories extends BaseRepository {
         result.depotNumber,
         totalWinLoss,
         percentageTotalWinLoss,
+        repoID,
       );
       final response = await supabase
           .from('depot_exports')
