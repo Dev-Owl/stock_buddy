@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:intl/intl.dart';
-import 'package:stock_buddy/models/report_chart_model.dart';
+import 'package:stock_buddy/models/report_screen_model.dart';
 import 'package:stock_buddy/repository/reporting_repository.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:stock_buddy/widgets/current_invested_chart.dart';
+import 'package:stock_buddy/widgets/current_value_chart.dart';
+
 /*
 
     Time chart:
@@ -46,7 +47,7 @@ class ReportingScreen extends StatefulWidget {
 }
 
 class _ReportingScreenState extends State<ReportingScreen> {
-  late List<ReportChartModel> data;
+  late ReportScreenModel data;
 
   Future<void> _loadingReport() async {
     //await Future.delayed(const Duration(seconds: 5));
@@ -54,34 +55,6 @@ class _ReportingScreenState extends State<ReportingScreen> {
     data = await repo
         .buildReportingModel(widget.depotId, isinFilter: ['DE000A0Q4R36']);
   }
-
-  List<charts.Series<ReportChartModel, DateTime>> _createChartingData() {
-    return [
-      charts.Series<ReportChartModel, DateTime>(
-        id: 'Currentvalue',
-        colorFn: (m, __) => m.winLoss < 0
-            ? charts.MaterialPalette.red.shadeDefault
-            : charts.MaterialPalette.green.shadeDefault,
-        domainFn: (r, _) => DateTime(
-          r.exportTime.year,
-          r.exportTime.month,
-          r.exportTime.day,
-        ),
-        measureFn: (r, _) => r.winLoss,
-        data: data,
-        displayName: 'Current value',
-      )
-    ];
-  }
-
-  final myNumericFormatter =
-      charts.BasicNumericTickFormatterSpec.fromNumberFormat(
-    NumberFormat.currency(
-      decimalDigits: 2,
-      locale: 'de',
-      name: 'EUR',
-    ),
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -95,77 +68,98 @@ class _ReportingScreenState extends State<ReportingScreen> {
         future: _loadingReport(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return Container(
-              height: 350,
-              width: 350,
-              color: Colors.grey[600],
-              child: Padding(
-                padding: const EdgeInsets.all(5),
-                child: charts.TimeSeriesChart(
-                  _createChartingData(),
-                  animate: true,
-                  behaviors: [charts.SeriesLegend()],
-                  primaryMeasureAxis: charts.NumericAxisSpec(
-                    renderSpec: const charts.GridlineRendererSpec(
-                      labelStyle: charts.TextStyleSpec(
-                        color: charts.MaterialPalette.white,
-                      ),
-                    ),
-                    tickProviderSpec: const charts.BasicNumericTickProviderSpec(
-                      zeroBound: false,
-                      dataIsInWholeNumbers: false,
-                    ),
-                    tickFormatterSpec: myNumericFormatter,
-                  ),
-                  domainAxis: const charts.DateTimeAxisSpec(
-                    showAxisLine: false,
-                    renderSpec: charts.GridlineRendererSpec(
-                      labelStyle: charts.TextStyleSpec(
-                        color: charts.MaterialPalette.white,
-                      ),
-                    ),
-                  ),
-                  defaultRenderer: charts.LineRendererConfig(
-                    includePoints: true,
-                  ),
-                ),
-              ),
-            );
+            return _getBody();
           } else {
-            return Center(
-              child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Crunching the numbers',
-                      style: Theme.of(context).textTheme.headline5,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(
-                        top: 10,
-                      ),
-                    ),
-                    const FaIcon(
-                      FontAwesomeIcons.calculator,
-                      size: 60,
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(
-                        top: 15,
-                      ),
-                    ),
-                    const SizedBox(
-                      width: 150,
-                      child: LinearProgressIndicator(
-                        minHeight: 10,
-                      ),
-                    ),
-                  ]),
-            );
+            return _buildLoading();
           }
         },
       ),
     );
   }
+
+  Widget _getBody() {
+    final size = MediaQuery.of(context).size;
+    final desktopMode = size.width > 600;
+    final List<Widget> children = [];
+    children.add(
+      Container(
+        height: 350,
+        width: 350,
+        color: Colors.grey[600],
+        child: Padding(
+          padding: const EdgeInsets.all(5),
+          child: CurrentValueChar(
+            chartData: data.valueChart,
+          ),
+        ),
+      ),
+    );
+    children.add(
+      Container(
+        height: 350,
+        width: 350,
+        color: Colors.grey[600],
+        child: Padding(
+          padding: const EdgeInsets.all(5),
+          child: CurrentInvestedChar(
+            chartData: data.valueChart,
+          ),
+        ),
+      ),
+    );
+    children.add(const ListTile(
+      leading: FaIcon(
+        FontAwesomeIcons.database,
+      ),
+      title: Text('Key figures'),
+      subtitle: Text('placeholder'),
+    ));
+    final crossAxisCount = size.width ~/ 350;
+    if (desktopMode) {
+      return GridView.count(
+        padding: const EdgeInsets.all(5),
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        children: children,
+      );
+    } else {
+      return ListView(
+        padding: const EdgeInsets.all(5),
+        children: children,
+      );
+    }
+  }
+
+  Widget _buildLoading() => Center(
+        child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Crunching the numbers',
+                style: Theme.of(context).textTheme.headline5,
+              ),
+              const Padding(
+                padding: EdgeInsets.only(
+                  top: 10,
+                ),
+              ),
+              const FaIcon(
+                FontAwesomeIcons.calculator,
+                size: 60,
+              ),
+              const Padding(
+                padding: EdgeInsets.only(
+                  top: 15,
+                ),
+              ),
+              const SizedBox(
+                width: 150,
+                child: LinearProgressIndicator(
+                  minHeight: 10,
+                ),
+              ),
+            ]),
+      );
 }

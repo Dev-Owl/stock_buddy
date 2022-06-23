@@ -1,10 +1,11 @@
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/report_chart_model.dart';
+import 'package:stock_buddy/models/report_screen_model.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
 import 'package:stock_buddy/utils/model_converter.dart';
 
 class ReportingRepository extends BaseRepository {
-  Future<List<ReportChartModel>> buildReportingModel(String depotID,
+  Future<ReportScreenModel> buildReportingModel(String depotID,
       {List<String>? isinFilter}) async {
     late final List<ReportChartModel> chartingData;
     final isinFilterPresent = isinFilter == null;
@@ -21,6 +22,8 @@ class ReportingRepository extends BaseRepository {
 
     chartingData = handleResponse(response, []);
 
-    return chartingData;
+    return ReportScreenModel(
+      chartingData,
+    );
   }
 }
