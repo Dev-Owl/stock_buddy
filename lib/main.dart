@@ -8,28 +8,6 @@ import 'package:stock_buddy/screens/export_overview_screen.dart';
 import 'package:stock_buddy/screens/login_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
 
-/*
-    1. Connect to supabase [X]
-    2. Login / register [X]
-    3. Add new export to db  [X]
-    4. See exports as list [X]
-    5. open export see line items [X]
-      a) use adv datatable to show [X]
-    6. Filter line items by isn [X]
-      b) also allow to select items  [X]
-    
-    7. Create depots to have names 
-    8. Change main view to repo view
-    9. Followed by export view for repo
-    
-    
-    N. Create a report from shown or selected line items
-      a) show
-    
-
-
-*/
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final supbase = await initSupabase();
@@ -70,20 +48,25 @@ class StockBuddy extends StatelessWidget {
                 depotId: state.params['depotNumber']!,
               ),
             ),
-            GoRoute(
-                name: 'reporting_overview',
-                path: 'reporting/:depotNumber',
-                builder: (context, state) {
-                  return ReportingScreen(
-                    depotId: state.params['depotNumber']!,
-                  );
-                }),
           ],
         ),
         GoRoute(
           path: '/login',
           builder: (context, state) => const LoginScreen(),
         ),
+        GoRoute(
+            name: 'reporting_overview',
+            path: '/reporting/:depotNumber',
+            builder: (context, state) {
+              List<String> isinFilter = [];
+              if (state.extra != null) {
+                isinFilter = state.extra as List<String>;
+              }
+              return ReportingScreen(
+                depotId: state.params['depotNumber']!,
+                lineItemsIsin: isinFilter,
+              );
+            }),
       ],
       redirect: (state) {
         final loggedIn = supabase.auth.currentUser != null;

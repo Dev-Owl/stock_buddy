@@ -1,4 +1,3 @@
-import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stock_buddy/models/export_record.dart';
@@ -119,37 +118,6 @@ class _ExportOverviewScreennState extends State<ExportOverviewScreen> {
               }
             },
           ),
-          if (_dragging)
-            Align(
-              alignment: Alignment.center,
-              child: SizedBox.square(
-                dimension: 250,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        CircleAvatar(
-                          radius: 60,
-                          child: FaIcon(
-                            FontAwesomeIcons.plus,
-                            size: 60,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 15,
-                        ),
-                        Text('Drop file here')
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );

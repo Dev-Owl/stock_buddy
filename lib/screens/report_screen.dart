@@ -1,35 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:stock_buddy/models/report_screen_model.dart';
 import 'package:stock_buddy/repository/reporting_repository.dart';
+import 'package:stock_buddy/utils/text_helper.dart';
 import 'package:stock_buddy/widgets/current_invested_chart.dart';
 import 'package:stock_buddy/widgets/current_value_chart.dart';
+import 'package:stock_buddy/widgets/percentage_pie_chart.dart';
 
-/*
-
-    Time chart:
-
-    Check if we have other exports for this depot by its number
-    Select date, total gain € for the same repo 
-    Filter it by Isin if provided
-
-    Total Kpi:
-    Sum up total gain/loss €/% 
-
-    List with overview:
-    Arow shows trend based on existing data
-    Unfold listtile to see all records for this position
-
-      Main Tile:
-    Up/Down | Isin |  Current
-     Arrow  | Name |  Win/Loss
-      
-      Detail tile:
-      | Export date | Win/Loss
-
-*/
-
-//TODO Add second chart to show invested money
+//TODO Add a filter function to this screen, show line items in tick list
+//     allow to add/remove them and reload the view
 
 class ReportingScreen extends StatefulWidget {
   final String? exportId;
@@ -50,10 +31,11 @@ class _ReportingScreenState extends State<ReportingScreen> {
   late ReportScreenModel data;
 
   Future<void> _loadingReport() async {
-    //await Future.delayed(const Duration(seconds: 5));
     final repo = ReportingRepository();
-    data = await repo
-        .buildReportingModel(widget.depotId, isinFilter: ['DE000A0Q4R36']);
+    data = await repo.buildReportingModel(
+      widget.depotId,
+      isinFilter: widget.lineItemsIsin,
+    );
   }
 
   @override
@@ -107,14 +89,84 @@ class _ReportingScreenState extends State<ReportingScreen> {
         ),
       ),
     );
-    children.add(const ListTile(
-      leading: FaIcon(
-        FontAwesomeIcons.database,
+    final title = Theme.of(context).textTheme.titleMedium;
+    final lastKnownData = data.valueChart.last;
+    final currencyWinLoss = lastKnownData.winLoss;
+    final percentageWinLoss =
+        ((currencyWinLoss / lastKnownData.totalInvest) * 100);
+    children.add(
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(5),
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              Text(
+                'Overivew ${data.totalPositions} elements',
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              const Padding(
+                padding: EdgeInsets.only(
+                  top: 10,
+                ),
+              ),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 10,
+                children: [
+                  Text(
+                    'Total:',
+                    style: Theme.of(context).textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  TextHelper.number(
+                    currencyWinLoss,
+                    decoration: '€',
+                    context: context,
+                    style: title,
+                  ),
+                  TextHelper.number(
+                    percentageWinLoss,
+                    decoration: '%',
+                    context: context,
+                    style: title,
+                  ),
+                ],
+              ),
+              ...data.lastItems.map(
+                (e) => ListTile(
+                    title: Text(e.name),
+                    subtitle: Text('ISIN: ${e.isin}'),
+                    trailing: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextHelper.number(
+                          e.currentWinLoss,
+                          decoration: '€',
+                          context: context,
+                          style: title,
+                        ),
+                        TextHelper.number(
+                          e.currentWindLossPercent,
+                          decoration: '%',
+                          context: context,
+                          style: title,
+                        ),
+                      ],
+                    )),
+              ),
+            ],
+          ),
+        ),
       ),
-      title: Text('Key figures'),
-      subtitle: Text('placeholder'),
-    ));
-    final crossAxisCount = size.width ~/ 350;
+    );
+    children.add(Container(
+        height: 350,
+        width: 350,
+        color: Colors.grey[600],
+        child: PercentagePieChart(items: data.lastItems)));
+    final crossAxisCount = min(4, size.width ~/ 350);
     if (desktopMode) {
       return GridView.count(
         padding: const EdgeInsets.all(5),

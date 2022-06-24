@@ -248,17 +248,12 @@ class _ExportDetailScreenState extends State<ExportDetailScreen> {
           child: const FaIcon(FontAwesomeIcons.chartLine),
         ),
         onPressed: () {
-          final rowsForAnalytics = _source.selectedRows
-              .map(
-                (e) => e.isin,
-              )
-              .toList();
-          context.goNamed(
-            'reporting',
+          context.pushNamed(
+            'reporting_overview',
             params: {
               'depotNumber': widget.depotId,
             },
-            extra: _source.selectedRows,
+            extra: _source.selectedRows.map((e) => e.isin).toList(),
           );
         },
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import 'package:stock_buddy/models/export_record.dart';
+import 'package:stock_buddy/utils/text_helper.dart';
 
 class ExportOverviewListTile extends StatelessWidget {
   final ExportRecord data;
@@ -42,11 +43,10 @@ class ExportOverviewListTile extends StatelessWidget {
       child: ListTile(
         title: Text(data.depotNumber),
         subtitle: Text("From ${data.exportDate}"),
-        trailing: Text(
-          "${data.winLossPercent.toStringAsFixed(1)}%",
-          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                color: (data.winLossPercent < 0 ? Colors.red : Colors.green),
-              ),
+        trailing: TextHelper.number(
+          data.winLossPercent,
+          decoration: '%',
+          context: context,
         ),
         onTap: () {
           context.goNamed(

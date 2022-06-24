@@ -46,7 +46,7 @@ class DepotOverviewTile extends StatelessWidget {
           // A SlidableAction can have an icon and/or a label.
           SlidableAction(
             onPressed: (_) {
-              context.goNamed(
+              context.pushNamed(
                 'reporting_overview',
                 params: {
                   'depotNumber': row.id,
@@ -74,9 +74,20 @@ class DepotOverviewTile extends StatelessWidget {
               ),
         title: Text(row.name),
         subtitle: Text('Number: ${row.number} Exports: ${row.totalExports}'),
-        trailing: TextHelper.number(
-          row.totalGainLoss,
-          context: context,
+        trailing: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextHelper.number(
+              row.totalGainLoss,
+              context: context,
+              decoration: '€',
+            ),
+            TextHelper.number(
+              row.totalGainLossPercent,
+              context: context,
+              decoration: '%',
+            ),
+          ],
         ),
         onTap: () {
           context.goNamed(

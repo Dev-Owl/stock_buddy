@@ -85,51 +85,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _dragging = false;
                 });
               },
-              child: RefreshIndicator(
-                onRefresh: _loadData,
-                child: ListView.builder(
-                    itemCount: _data.length,
-                    itemBuilder: (context, index) {
-                      final currentRow = _data[index];
-                      return DepotOverviewTile(
-                        row: currentRow,
-                        onDelteCallback: () {
-                          // set up the buttons
-                          Widget cancelButton = TextButton(
-                            child: const Text("Cancel"),
-                            onPressed: () {
-                              Navigator.of(context).pop();
+              child: Stack(
+                children: [
+                  RefreshIndicator(
+                    onRefresh: _loadData,
+                    child: ListView.builder(
+                        itemCount: _data.length,
+                        itemBuilder: (context, index) {
+                          final currentRow = _data[index];
+                          return DepotOverviewTile(
+                            row: currentRow,
+                            onDelteCallback: () {
+                              // set up the buttons
+                              Widget cancelButton = TextButton(
+                                child: const Text("Cancel"),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              );
+                              Widget continueButton = TextButton(
+                                child: const Text("Delete"),
+                                onPressed: () async {
+                                  await _repo.deleteDepot(currentRow.id);
+                                  if (!mounted) return;
+                                  Navigator.of(context).pop();
+                                  _loadData();
+                                },
+                              );
+                              // set up the AlertDialog
+                              AlertDialog alert = AlertDialog(
+                                title: const Text("Please confirm"),
+                                content: const Text(
+                                    "The depo and ALL related data will be DELETED!"),
+                                actions: [
+                                  cancelButton,
+                                  continueButton,
+                                ],
+                              );
+                              // show the dialog
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return alert;
+                                },
+                              );
                             },
                           );
-                          Widget continueButton = TextButton(
-                            child: const Text("Delete"),
-                            onPressed: () async {
-                              await _repo.deleteDepot(currentRow.id);
-                              if (!mounted) return;
-                              Navigator.of(context).pop();
-                              _loadData();
-                            },
-                          );
-                          // set up the AlertDialog
-                          AlertDialog alert = AlertDialog(
-                            title: const Text("Please confirm"),
-                            content: const Text(
-                                "The depo and ALL related data will be DELETED!"),
-                            actions: [
-                              cancelButton,
-                              continueButton,
-                            ],
-                          );
-                          // show the dialog
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return alert;
-                            },
-                          );
-                        },
-                      );
-                    }),
+                        }),
+                  ),
+                  if (_dragging)
+                    Align(
+                      alignment: Alignment.center,
+                      child: SizedBox.square(
+                        dimension: 250,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: const [
+                                CircleAvatar(
+                                  radius: 60,
+                                  child: FaIcon(
+                                    FontAwesomeIcons.plus,
+                                    size: 60,
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 15,
+                                ),
+                                Text('Drop file here')
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             );
           } else {
@@ -189,7 +224,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
 
       if (!mounted) return;
-      Navigator.of(context).pop();
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
       _loadData();
     } on DuplicateExportException {
       context.showErrorSnackBar(message: 'This export is already imported');
@@ -197,7 +234,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
       context.showErrorSnackBar(
           message: 'Something went wrong importing the file');
     }
-    if (!mounted) return;
-    Navigator.of(context).pop();
   }
 }
