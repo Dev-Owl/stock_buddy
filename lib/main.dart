@@ -8,12 +8,6 @@ import 'package:stock_buddy/screens/export_overview_screen.dart';
 import 'package:stock_buddy/screens/login_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
 
-/*
-    Add a new screen from depot to show known items
-    Allow to set tags there 
-    and notes
-*/
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final supbase = await initSupabase();

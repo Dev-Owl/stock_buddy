@@ -7,15 +7,22 @@ part 'deopt_item.g.dart';
 class DepotItem extends BaseDatabaseModel {
   final List<String>? tags;
   final String isin;
+  final String? note;
   @JsonKey(name: 'depot_id')
   final String depotId;
 
   factory DepotItem.fromJson(Map<String, dynamic> json) =>
       _$DepotItemFromJson(json);
 
-  DepotItem(DateTime createdAt, String id, String ownerId, this.tags, this.isin,
-      this.depotId)
-      : super(createdAt, id, ownerId);
+  DepotItem(
+    DateTime createdAt,
+    String id,
+    String ownerId,
+    this.tags,
+    this.isin,
+    this.depotId,
+    this.note,
+  ) : super(createdAt, id, ownerId);
 
   Map<String, dynamic> toJson() => _$DepotItemToJson(this);
 }
