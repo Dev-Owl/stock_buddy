@@ -1,5 +1,7 @@
 import 'package:stock_buddy/backend.dart';
+import 'package:stock_buddy/models/create_depot_item.dart';
 import 'package:stock_buddy/models/create_export_record.dart';
+import 'package:stock_buddy/models/deopt_item.dart';
 import 'package:stock_buddy/models/export_record.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
 import 'package:stock_buddy/repository/depot_repository.dart';
@@ -53,6 +55,7 @@ class ExportRepositories extends BaseRepository {
     final result = await reader.parseFile(pathToExportFile);
     final depotRepo = DepotRepository();
     var depoID = await depotRepo.getRepositoryIdByNumber(result.depotNumber);
+
     if (depoID == null) {
       var newDepotName = await missingRepoNameQuestion();
       if (newDepotName.isEmpty) {
@@ -96,6 +99,42 @@ class ExportRepositories extends BaseRepository {
 
     if (response.data != null) {
       final parentId = response.data!.id;
+      //Ensure we have depot line item for all
+      final isinList = result.lineItems.map((e) => e.isin).toList();
+      final depotItemsResponse = await supabase
+          .from('depot_items')
+          .select('id,isin')
+          .eq('depot_id', depoID)
+          .withConverter((data) => ModelConverter.modelList(
+              data,
+              (singleElement) => MapEntry(singleElement['isin'].toString(),
+                  singleElement['id'].toString())))
+          .execute();
+      handleNoValueResponse(depotItemsResponse);
+      isinList.removeWhere((isin) =>
+          depotItemsResponse.data
+              ?.any((isinMapping) => isinMapping.key == isin) ??
+          false);
+      Map<String, String> isinDepotItemMapping = {};
+      isinDepotItemMapping.addEntries(depotItemsResponse.data ?? []);
+      if (isinList.isNotEmpty) {
+        //All items in here are missing a record until now
+        final creatioResponse = await supabase
+            .from('depot_items')
+            .insert(isinList
+                .map(
+                  (isin) => CreateDepotItem(depoID!, isin),
+                )
+                .toList())
+            .withConverter((data) => ModelConverter.modelList(
+                data, (singleElement) => DepotItem.fromJson(singleElement)))
+            .execute();
+        final newRows = handleNeverNullResponse(creatioResponse);
+        for (var element in newRows) {
+          isinDepotItemMapping[element.isin] = element.id;
+        }
+      }
+
       final lineItemCreation = await supabase
           .from('line_items')
           .insert(
@@ -103,6 +142,7 @@ class ExportRepositories extends BaseRepository {
                   .map(
                     (e) => e.toCreateDto(
                       parentId,
+                      isinDepotItemMapping[e.isin]!,
                     ),
                   )
                   .toList(),

@@ -31,7 +31,7 @@ class DepotLineItem {
     this.currentWindLossPercent,
   );
 
-  CreateExportLine toCreateDto(String exportId) {
+  CreateExportLine toCreateDto(String exportId, String depotLineItemId) {
     return CreateExportLine(
         exportId,
         isin,
@@ -46,6 +46,7 @@ class DepotLineItem {
         marketName,
         currentTotalValue,
         currentWinLoss,
-        currentWindLossPercent);
+        currentWindLossPercent,
+        depotLineItemId);
   }
 }

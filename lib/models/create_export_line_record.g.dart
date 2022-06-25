@@ -22,6 +22,7 @@ CreateExportLine _$CreateExportLineFromJson(Map<String, dynamic> json) =>
       (json['current_total_value'] as num).toDouble(),
       (json['current_win_loss'] as num).toDouble(),
       (json['current_win_loss_percent'] as num).toDouble(),
+      json['depot_item'] as String,
     );
 
 Map<String, dynamic> _$CreateExportLineToJson(CreateExportLine instance) =>
@@ -30,6 +31,7 @@ Map<String, dynamic> _$CreateExportLineToJson(CreateExportLine instance) =>
       'isin': instance.isin,
       'name': instance.name,
       'amount': instance.amount,
+      'depot_item': instance.depotItem,
       'amount_type': instance.amountType,
       'single_purchase_price': instance.singlePurchasePrice,
       'currency': instance.currency,

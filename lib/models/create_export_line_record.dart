@@ -12,6 +12,9 @@ class CreateExportLine {
 
   final double amount;
 
+  @JsonKey(name: 'depot_item')
+  final String depotItem;
+
   @JsonKey(name: 'amount_type')
   final String amountType;
 
@@ -56,6 +59,7 @@ class CreateExportLine {
     this.currentTotalValue,
     this.currentWinLoss,
     this.currentWindLossPercent,
+    this.depotItem,
   );
 
   factory CreateExportLine.fromJson(Map<String, dynamic> json) =>

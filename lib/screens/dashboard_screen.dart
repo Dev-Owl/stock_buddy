@@ -50,26 +50,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         future: _initialLoad,
         builder: (context, snapShot) {
           if (snapShot.connectionState == ConnectionState.done) {
-            if (_data.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    CircleAvatar(
-                      radius: 60,
-                      child: FaIcon(
-                        FontAwesomeIcons.piggyBank,
-                        size: 60,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 15,
-                    ),
-                    Text('No data found')
-                  ],
-                ),
-              );
-            }
             return DropTarget(
               onDragDone: (detail) {
                 if (detail.files.isNotEmpty) {
@@ -88,82 +68,102 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
               child: Stack(
                 children: [
-                  RefreshIndicator(
-                    onRefresh: _loadData,
-                    child: ListView.builder(
-                        itemCount: _data.length,
-                        itemBuilder: (context, index) {
-                          final currentRow = _data[index];
-                          return DepotOverviewTile(
-                            row: currentRow,
-                            onDelteCallback: () {
-                              // set up the buttons
-                              Widget cancelButton = TextButton(
-                                child: const Text("Cancel"),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              );
-                              Widget continueButton = TextButton(
-                                child: const Text("Delete"),
-                                onPressed: () async {
-                                  await _repo.deleteDepot(currentRow.id);
-                                  if (!mounted) return;
-                                  Navigator.of(context).pop();
-                                  _loadData();
-                                },
-                              );
-                              // set up the AlertDialog
-                              AlertDialog alert = AlertDialog(
-                                title: const Text("Please confirm"),
-                                content: const Text(
-                                    "The depot and ALL related data will be DELETED!"),
-                                actions: [
-                                  cancelButton,
-                                  continueButton,
-                                ],
-                              );
-                              // show the dialog
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return alert;
-                                },
-                              );
-                            },
-                            showNotes: () {
-                              final controller =
-                                  TextEditingController(text: currentRow.notes);
-                              final alert = AlertDialog(
-                                title: const Text('Depot notes'),
-                                content: EditNotes(controller: controller),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Cancle'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () async {
-                                      Navigator.pop(context);
-                                      await DepotRepository()
-                                          .updateDepotNotes(
-                                              currentRow.id, controller.text)
-                                          .then((value) => _loadData());
-                                    },
-                                    child: const Text('Save'),
-                                  )
-                                ],
-                              );
-                              showDialog(
-                                context: context,
-                                builder: (BuildContext context) {
-                                  return alert;
-                                },
-                              );
-                            },
-                          );
-                        }),
-                  ),
+                  if (_data.isEmpty)
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          CircleAvatar(
+                            radius: 60,
+                            child: FaIcon(
+                              FontAwesomeIcons.piggyBank,
+                              size: 60,
+                            ),
+                          ),
+                          SizedBox(
+                            height: 15,
+                          ),
+                          Text('No data found')
+                        ],
+                      ),
+                    ),
+                  if (_data.isNotEmpty)
+                    RefreshIndicator(
+                      onRefresh: _loadData,
+                      child: ListView.builder(
+                          itemCount: _data.length,
+                          itemBuilder: (context, index) {
+                            final currentRow = _data[index];
+                            return DepotOverviewTile(
+                              row: currentRow,
+                              onDelteCallback: () {
+                                // set up the buttons
+                                Widget cancelButton = TextButton(
+                                  child: const Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                );
+                                Widget continueButton = TextButton(
+                                  child: const Text("Delete"),
+                                  onPressed: () async {
+                                    await _repo.deleteDepot(currentRow.id);
+                                    if (!mounted) return;
+                                    Navigator.of(context).pop();
+                                    _loadData();
+                                  },
+                                );
+                                // set up the AlertDialog
+                                AlertDialog alert = AlertDialog(
+                                  title: const Text("Please confirm"),
+                                  content: const Text(
+                                      "The depot and ALL related data will be DELETED!"),
+                                  actions: [
+                                    cancelButton,
+                                    continueButton,
+                                  ],
+                                );
+                                // show the dialog
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return alert;
+                                  },
+                                );
+                              },
+                              showNotes: () {
+                                final controller = TextEditingController(
+                                    text: currentRow.notes);
+                                final alert = AlertDialog(
+                                  title: const Text('Depot notes'),
+                                  content: EditNotes(controller: controller),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Cancle'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        Navigator.pop(context);
+                                        await DepotRepository()
+                                            .updateDepotNotes(
+                                                currentRow.id, controller.text)
+                                            .then((value) => _loadData());
+                                      },
+                                      child: const Text('Save'),
+                                    )
+                                  ],
+                                );
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return alert;
+                                  },
+                                );
+                              },
+                            );
+                          }),
+                    ),
                   if (_dragging)
                     Align(
                       alignment: Alignment.center,
@@ -261,9 +261,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _loadData();
     } on DuplicateExportException {
       context.showErrorSnackBar(message: 'This export is already imported');
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     } catch (ex) {
       context.showErrorSnackBar(
           message: 'Something went wrong importing the file');
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     }
   }
 }
