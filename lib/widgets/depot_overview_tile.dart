@@ -8,9 +8,13 @@ import 'package:stock_buddy/utils/text_helper.dart';
 class DepotOverviewTile extends StatelessWidget {
   final DataDepot row;
   final VoidCallback onDelteCallback;
-  const DepotOverviewTile(
-      {required this.row, required this.onDelteCallback, Key? key})
-      : super(key: key);
+  final VoidCallback showNotes;
+  const DepotOverviewTile({
+    required this.row,
+    required this.onDelteCallback,
+    required this.showNotes,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +48,14 @@ class DepotOverviewTile extends StatelessWidget {
         // All actions are defined in the children parameter.
         children: [
           // A SlidableAction can have an icon and/or a label.
+          SlidableAction(
+            onPressed: (_) {
+              showNotes();
+            },
+            backgroundColor: Colors.blue,
+            icon: Icons.note_alt_outlined,
+            label: 'Notes',
+          ),
           SlidableAction(
             onPressed: (_) {
               context.pushNamed(

@@ -15,6 +15,7 @@ DataDepot _$DataDepotFromJson(Map<String, dynamic> json) => DataDepot(
       json['totalexports'] as int? ?? 0,
       (json['totalgainloss'] as num?)?.toDouble() ?? 0,
       (json['totalgainlosspercent'] as num?)?.toDouble() ?? 0,
+      json['notes'] as String?,
     );
 
 Map<String, dynamic> _$DataDepotToJson(DataDepot instance) {
@@ -22,6 +23,7 @@ Map<String, dynamic> _$DataDepotToJson(DataDepot instance) {
     'created_at': instance.createdAt.toIso8601String(),
     'id': instance.id,
     'owner_id': instance.ownerId,
+    'notes': instance.notes,
     'name': instance.name,
     'number': instance.number,
   };

@@ -52,4 +52,13 @@ class DepotRepository extends BaseRepository {
       return false;
     }
   }
+
+  Future<void> updateDepotNotes(String id, String notes) async {
+    final result = await supabase
+        .from('depots')
+        .update({'notes': notes})
+        .eq('id', id)
+        .execute();
+    handleNoValueResponse(result);
+  }
 }

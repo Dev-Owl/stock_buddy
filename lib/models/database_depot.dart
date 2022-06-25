@@ -7,6 +7,7 @@ part 'database_depot.g.dart';
 class DataDepot extends BaseDatabaseModel {
   static toNull(_) => null;
 
+  final String? notes;
   final String name;
   final String number;
   @JsonKey(
@@ -41,12 +42,14 @@ class DataDepot extends BaseDatabaseModel {
     this.totalExports,
     this.totalGainLoss,
     this.totalGainLossPercent,
+    this.notes,
   ) : super(createdAt, id, ownerId);
 
   DataDepot.forInsert(this.name, this.number,
       {this.totalExports = 0,
       this.totalGainLoss = 0,
-      this.totalGainLossPercent = 0})
+      this.totalGainLossPercent = 0,
+      this.notes})
       : super(DateTime.now(), '', '');
 
   factory DataDepot.fromJson(Map<String, dynamic> json) =>
