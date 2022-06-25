@@ -10,8 +10,7 @@ import 'package:stock_buddy/widgets/current_invested_chart.dart';
 import 'package:stock_buddy/widgets/current_value_chart.dart';
 import 'package:stock_buddy/widgets/percentage_pie_chart.dart';
 
-//TODO Add a filter function to this screen, show line items in tick list
-//     allow to add/remove them and reload the view
+//TODO Allow to also filter by tag on this screen
 
 class ReportingScreen extends StatefulWidget {
   final String? exportId;
@@ -259,11 +258,10 @@ class _ReportingScreenState extends State<ReportingScreen> {
                     });
                   },
                   child: const Text('Apply'))
-            ], // Change as per your requirement
+            ],
             content: SizedBox(
-              height: 300.0, // Change as per your requirement
+              height: 300.0,
               width: 300.0,
-
               child: StatefulBuilder(
                   builder: (BuildContext context, StateSetter setStateList) {
                 return Column(
@@ -287,8 +285,12 @@ class _ReportingScreenState extends State<ReportingScreen> {
                           if (d == true) {
                             setStateList((() {
                               isinFilter.clear();
-                              isinFilter
-                                  .addAll(data!.lastItems.map((e) => e.isin));
+                              isinFilter.addAll(allAvalibleItems
+                                  .where((element) =>
+                                      popupIsinFilter.isEmpty ||
+                                      element.isin == popupIsinFilter ||
+                                      element.isin.contains(popupIsinFilter))
+                                  .map((e) => e.isin));
                             }));
                           } else {
                             setStateList((() => isinFilter.clear()));
