@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:stock_buddy/models/export_line_item.dart';
 import 'package:stock_buddy/models/report_screen_model.dart';
 import 'package:stock_buddy/repository/reporting_repository.dart';
 import 'package:stock_buddy/utils/text_helper.dart';
@@ -28,35 +29,60 @@ class ReportingScreen extends StatefulWidget {
 }
 
 class _ReportingScreenState extends State<ReportingScreen> {
-  late ReportScreenModel data;
+  ReportScreenModel? data;
+  List<String> isinFilter = [];
+  List<ExportLineItem> allAvalibleItems = [];
+  @override
+  void initState() {
+    super.initState();
+    isinFilter = widget.lineItemsIsin ?? [];
+  }
 
   Future<void> _loadingReport() async {
     final repo = ReportingRepository();
     data = await repo.buildReportingModel(
       widget.depotId,
-      isinFilter: widget.lineItemsIsin,
+      isinFilter: isinFilter,
     );
+    if (allAvalibleItems.isEmpty) {
+      allAvalibleItems.addAll(data!.lastItems);
+    }
+
+    isinFilter.addAll(data!.lastItems.map((e) => e.isin).toList());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Report',
-        ),
-      ),
-      body: FutureBuilder(
+    return FutureBuilder(
         future: _loadingReport(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return _getBody();
+          late final Widget body;
+          final loadingDone = snapshot.connectionState == ConnectionState.done;
+          if (loadingDone) {
+            body = _getBody();
           } else {
-            return _buildLoading();
+            body = _buildLoading();
           }
-        },
-      ),
-    );
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text(
+                'Report',
+              ),
+              actions: [
+                if (loadingDone)
+                  IconButton(
+                    onPressed: () {
+                      _onScreenFilter();
+                    },
+                    icon: const FaIcon(
+                      FontAwesomeIcons.filter,
+                    ),
+                  ),
+              ],
+            ),
+            body: body,
+          );
+        });
   }
 
   Widget _getBody() {
@@ -71,7 +97,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
         child: Padding(
           padding: const EdgeInsets.all(5),
           child: CurrentValueChar(
-            chartData: data.valueChart,
+            chartData: data!.valueChart,
           ),
         ),
       ),
@@ -84,16 +110,17 @@ class _ReportingScreenState extends State<ReportingScreen> {
         child: Padding(
           padding: const EdgeInsets.all(5),
           child: CurrentInvestedChar(
-            chartData: data.valueChart,
+            chartData: data!.valueChart,
           ),
         ),
       ),
     );
     final title = Theme.of(context).textTheme.titleMedium;
-    final lastKnownData = data.valueChart.last;
+    final lastKnownData = data!.valueChart.last;
     final currencyWinLoss = lastKnownData.winLoss;
     final percentageWinLoss =
         ((currencyWinLoss / lastKnownData.totalInvest) * 100);
+
     children.add(
       Card(
         child: Padding(
@@ -102,7 +129,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
             shrinkWrap: true,
             children: [
               Text(
-                'Overivew ${data.totalPositions} elements',
+                'Overivew ${data!.totalPositions} elements',
                 style: Theme.of(context).textTheme.titleLarge,
                 textAlign: TextAlign.center,
               ),
@@ -134,7 +161,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
                   ),
                 ],
               ),
-              ...data.lastItems.map(
+              ...data!.lastItems.map(
                 (e) => ListTile(
                     title: Text(e.name),
                     subtitle: Text('ISIN: ${e.isin}'),
@@ -165,7 +192,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
         height: 350,
         width: 350,
         color: Colors.grey[600],
-        child: PercentagePieChart(items: data.lastItems)));
+        child: PercentagePieChart(items: data!.lastItems)));
     final crossAxisCount = min(4, size.width ~/ 350);
     if (desktopMode) {
       return GridView.count(
@@ -214,4 +241,93 @@ class _ReportingScreenState extends State<ReportingScreen> {
               ),
             ]),
       );
+
+  Future<void> _onScreenFilter() {
+    final txtController = TextEditingController();
+    String popupIsinFilter = "";
+    return showDialog(
+        context: context,
+        builder: (c) {
+          return AlertDialog(
+            title: const Text('Filter'),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    setState(() {
+                      //Apply changed filter
+                    });
+                  },
+                  child: const Text('Apply'))
+            ], // Change as per your requirement
+            content: SizedBox(
+              height: 300.0, // Change as per your requirement
+              width: 300.0,
+
+              child: StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setStateList) {
+                return Column(
+                  children: [
+                    TextField(
+                      controller: txtController,
+                      decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                        onPressed: () {
+                          setStateList(
+                              () => popupIsinFilter = txtController.text);
+                        },
+                        icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
+                      )),
+                    ),
+                    ListTile(
+                      title: const Text('Name'),
+                      subtitle: const Text('ISIN'),
+                      trailing: Checkbox(
+                        onChanged: (d) {
+                          if (d == true) {
+                            setStateList((() {
+                              isinFilter.clear();
+                              isinFilter
+                                  .addAll(data!.lastItems.map((e) => e.isin));
+                            }));
+                          } else {
+                            setStateList((() => isinFilter.clear()));
+                          }
+                        },
+                        value: data!.lastItems.length == isinFilter.length,
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView(
+                        children: allAvalibleItems
+                            .where((element) =>
+                                popupIsinFilter.isEmpty ||
+                                element.isin == popupIsinFilter ||
+                                element.isin.contains(popupIsinFilter))
+                            .map((e) => CheckboxListTile(
+                                  value: isinFilter.contains(e.isin),
+                                  title: Text(e.name),
+                                  subtitle: Text(e.isin),
+                                  onChanged: (newState) {
+                                    if (newState == true) {
+                                      setStateList(() {
+                                        isinFilter.add(e.isin);
+                                      });
+                                    } else {
+                                      setStateList(() {
+                                        isinFilter.remove(e.isin);
+                                      });
+                                    }
+                                  },
+                                ))
+                            .toList(),
+                      ),
+                    )
+                  ],
+                );
+              }),
+            ),
+          );
+        });
+  }
 }
