@@ -16,6 +16,9 @@ DataDepot _$DataDepotFromJson(Map<String, dynamic> json) => DataDepot(
       (json['totalgainloss'] as num?)?.toDouble() ?? 0,
       (json['totalgainlosspercent'] as num?)?.toDouble() ?? 0,
       json['notes'] as String?,
+      json['export_time'] == null
+          ? null
+          : DateTime.parse(json['export_time'] as String),
     );
 
 Map<String, dynamic> _$DataDepotToJson(DataDepot instance) {
@@ -38,5 +41,6 @@ Map<String, dynamic> _$DataDepotToJson(DataDepot instance) {
   writeNotNull('totalgainloss', DataDepot.toNull(instance.totalGainLoss));
   writeNotNull(
       'totalgainlosspercent', DataDepot.toNull(instance.totalGainLossPercent));
+  writeNotNull('export_time', DataDepot.toNull(instance.lastExportTime));
   return val;
 }

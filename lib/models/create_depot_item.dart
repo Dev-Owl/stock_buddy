@@ -7,9 +7,10 @@ class CreateDepotItem {
   @JsonKey(name: 'depot_id')
   final String depotId;
   final String isin;
+  final String name;
   final List<String>? tags;
 
-  CreateDepotItem(this.depotId, this.isin, {this.tags});
+  CreateDepotItem(this.depotId, this.isin, this.name, {this.tags});
   factory CreateDepotItem.fromJson(Map<String, dynamic> json) =>
       _$CreateDepotItemFromJson(json);
 

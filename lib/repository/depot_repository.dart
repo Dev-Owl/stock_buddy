@@ -31,9 +31,18 @@ class DepotRepository extends BaseRepository {
     return handleNeverNullResponse<DataDepot>(response);
   }
 
-  Future<List<DataDepot>> getAllDepots() async {
+  Future<List<DataDepot>> getAllDepots({String? filterById}) async {
+    Map<String, String>? optionalFilter;
+    if (filterById != null) {
+      optionalFilter = {
+        'depotid': filterById,
+      };
+    }
     final response = await supabase
-        .rpc('getdepotstats')
+        .rpc(
+          'getdepotstats',
+          params: optionalFilter,
+        )
         .withConverter((data) => ModelConverter.modelList(
             data, (singleElement) => DataDepot.fromJson(singleElement)))
         .execute();

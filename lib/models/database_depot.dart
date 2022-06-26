@@ -33,6 +33,14 @@ class DataDepot extends BaseDatabaseModel {
   )
   final double totalGainLossPercent;
 
+  @JsonKey(
+    toJson: toNull,
+    includeIfNull: false,
+    defaultValue: null,
+    name: 'export_time',
+  )
+  final DateTime? lastExportTime;
+
   DataDepot(
     this.name,
     this.number,
@@ -43,12 +51,14 @@ class DataDepot extends BaseDatabaseModel {
     this.totalGainLoss,
     this.totalGainLossPercent,
     this.notes,
+    this.lastExportTime,
   ) : super(createdAt, id, ownerId);
 
   DataDepot.forInsert(this.name, this.number,
       {this.totalExports = 0,
       this.totalGainLoss = 0,
       this.totalGainLossPercent = 0,
+      this.lastExportTime,
       this.notes})
       : super(DateTime.now(), '', '');
 

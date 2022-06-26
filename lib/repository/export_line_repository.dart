@@ -31,7 +31,7 @@ class ExportLineRepository extends BaseRepository {
     };
     var query = supabase.from("line_items").select().eq("export_id", exportId);
     if (isinFilter != null) {
-      query = query.like("isin", "%$isinFilter%");
+      query = query.ilike("isin", "%$isinFilter%");
     }
     final rangeTo = offset + pageSize;
     final response = await query

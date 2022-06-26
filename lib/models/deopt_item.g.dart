@@ -14,6 +14,7 @@ DepotItem _$DepotItemFromJson(Map<String, dynamic> json) => DepotItem(
       json['isin'] as String,
       json['depot_id'] as String,
       json['note'] as String?,
+      json['name'] as String,
     );
 
 Map<String, dynamic> _$DepotItemToJson(DepotItem instance) => <String, dynamic>{
@@ -23,5 +24,6 @@ Map<String, dynamic> _$DepotItemToJson(DepotItem instance) => <String, dynamic>{
       'tags': instance.tags,
       'isin': instance.isin,
       'note': instance.note,
+      'name': instance.name,
       'depot_id': instance.depotId,
     };

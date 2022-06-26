@@ -17,7 +17,7 @@ class CurrentInvestedChar extends StatelessWidget {
         colorFn: (m, i) {
           var up = false;
           if (i != null) {
-            final prevIndex = max(0, (i ?? 0) - 1);
+            final prevIndex = max(0, i - 1);
             up = chartData[prevIndex].totalInvest >= m.totalInvest;
           }
 

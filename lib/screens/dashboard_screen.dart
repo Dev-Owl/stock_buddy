@@ -8,7 +8,6 @@ import 'package:stock_buddy/repository/export_repository.dart';
 import 'package:stock_buddy/utils/duplicate_export_exception.dart';
 import 'package:stock_buddy/utils/snackbar_extension.dart';
 import 'package:stock_buddy/widgets/depot_overview_tile.dart';
-import 'package:stock_buddy/widgets/edit_notes.dart';
 import 'package:stock_buddy/widgets/text_confirm.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -124,36 +123,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ],
                                 );
                                 // show the dialog
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return alert;
-                                  },
-                                );
-                              },
-                              showNotes: () {
-                                final controller = TextEditingController(
-                                    text: currentRow.notes);
-                                final alert = AlertDialog(
-                                  title: const Text('Depot notes'),
-                                  content: EditNotes(controller: controller),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('Cancle'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () async {
-                                        Navigator.pop(context);
-                                        await DepotRepository()
-                                            .updateDepotNotes(
-                                                currentRow.id, controller.text)
-                                            .then((value) => _loadData());
-                                      },
-                                      child: const Text('Save'),
-                                    )
-                                  ],
-                                );
                                 showDialog(
                                   context: context,
                                   builder: (BuildContext context) {

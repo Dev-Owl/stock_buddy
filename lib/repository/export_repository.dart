@@ -123,7 +123,13 @@ class ExportRepositories extends BaseRepository {
             .from('depot_items')
             .insert(isinList
                 .map(
-                  (isin) => CreateDepotItem(depoID!, isin),
+                  (isin) => CreateDepotItem(
+                    depoID!,
+                    isin,
+                    result.lineItems
+                        .firstWhere((element) => element.isin == isin)
+                        .name,
+                  ),
                 )
                 .toList())
             .withConverter((data) => ModelConverter.modelList(

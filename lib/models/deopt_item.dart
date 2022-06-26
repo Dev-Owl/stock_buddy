@@ -8,6 +8,7 @@ class DepotItem extends BaseDatabaseModel {
   final List<String>? tags;
   final String isin;
   final String? note;
+  final String name;
   @JsonKey(name: 'depot_id')
   final String depotId;
 
@@ -22,6 +23,7 @@ class DepotItem extends BaseDatabaseModel {
     this.isin,
     this.depotId,
     this.note,
+    this.name,
   ) : super(createdAt, id, ownerId);
 
   Map<String, dynamic> toJson() => _$DepotItemToJson(this);

@@ -10,16 +10,16 @@ import 'package:stock_buddy/widgets/current_invested_chart.dart';
 import 'package:stock_buddy/widgets/current_value_chart.dart';
 import 'package:stock_buddy/widgets/percentage_pie_chart.dart';
 
-//TODO Allow to also filter by tag on this screen
-
 class ReportingScreen extends StatefulWidget {
   final String? exportId;
   final List<String>? lineItemsIsin;
   final String depotId;
+  final bool embededMode;
   const ReportingScreen({
     required this.depotId,
     this.exportId,
     this.lineItemsIsin,
+    this.embededMode = false,
     Key? key,
   }) : super(key: key);
 
@@ -63,23 +63,33 @@ class _ReportingScreenState extends State<ReportingScreen> {
             body = _buildLoading();
           }
           return Scaffold(
-            appBar: AppBar(
-              title: const Text(
-                'Report',
-              ),
-              actions: [
-                if (loadingDone)
-                  IconButton(
-                    onPressed: () {
-                      _onScreenFilter();
-                    },
-                    icon: const FaIcon(
+            appBar: widget.embededMode
+                ? null
+                : AppBar(
+                    title: const Text(
+                      'Report',
+                    ),
+                    actions: [
+                      if (loadingDone)
+                        IconButton(
+                          onPressed: () {
+                            _onScreenFilter();
+                          },
+                          icon: const FaIcon(
+                            FontAwesomeIcons.filter,
+                          ),
+                        ),
+                    ],
+                  ),
+            body: body,
+            floatingActionButton: widget.embededMode
+                ? FloatingActionButton(
+                    onPressed: _onScreenFilter,
+                    child: const FaIcon(
                       FontAwesomeIcons.filter,
                     ),
-                  ),
-              ],
-            ),
-            body: body,
+                  )
+                : null,
           );
         });
   }

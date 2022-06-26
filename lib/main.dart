@@ -3,10 +3,20 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/screens/dashboard_screen.dart';
+import 'package:stock_buddy/screens/depot_detials.dart';
 import 'package:stock_buddy/screens/export_detail_screen.dart';
 import 'package:stock_buddy/screens/export_overview_screen.dart';
 import 'package:stock_buddy/screens/login_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
+/*
+  TODO List below, sorted by prio
+      - Allow to open a depot detail row and add/remove tags and update the note
+      - Allow to filter the report screen by tags
+      - Show the tags also in the report screen
+      - Depot line item screen show last known value
+      - Show the tags in the export detail rows
+      
+*/
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +43,14 @@ class StockBuddy extends StatelessWidget {
           path: '/',
           builder: (context, state) => const DashboardScreen(),
           routes: [
+            GoRoute(
+                name: 'depot_details',
+                path: 'depot/:depotNumber',
+                builder: (context, state) {
+                  return DepotDetailPage(
+                    depotId: state.params['depotNumber']!,
+                  );
+                }),
             GoRoute(
               name: 'export_overview',
               path: 'export/:depotNumber',

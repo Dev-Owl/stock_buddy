@@ -16,9 +16,9 @@ class ExportOverviewScreen extends StatefulWidget {
 class _ExportOverviewScreennState extends State<ExportOverviewScreen> {
   final exportRepo = ExportRepositories();
   List<ExportRecord> _data = [];
-  final bool _dragging = false;
   bool _intialLoadDone = false;
   late final Future<void> _initialFuture;
+
   Future<void> _initialLoad() async {
     if (_intialLoadDone) {
       return;
@@ -35,91 +35,85 @@ class _ExportOverviewScreennState extends State<ExportOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Export overview'),
-      ),
-      body: Stack(
-        children: [
-          FutureBuilder<void>(
-            future: _initialFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                if (_data.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        CircleAvatar(
-                          radius: 60,
-                          child: FaIcon(
-                            FontAwesomeIcons.piggyBank,
-                            size: 60,
-                          ),
+    return Stack(
+      children: [
+        FutureBuilder<void>(
+          future: _initialFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              if (_data.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      CircleAvatar(
+                        radius: 60,
+                        child: FaIcon(
+                          FontAwesomeIcons.piggyBank,
+                          size: 60,
                         ),
-                        SizedBox(
-                          height: 15,
-                        ),
-                        Text('No data found')
-                      ],
-                    ),
-                  );
-                }
-                return RefreshIndicator(
-                  onRefresh: _loadData,
-                  child: ListView.builder(
-                      itemCount: _data.length,
-                      itemBuilder: (context, index) {
-                        final currentRow = _data[index];
-                        return ExportOverviewListTile(
-                          data: currentRow,
-                          onDelteCallback: () {
-                            // set up the buttons
-                            Widget cancelButton = TextButton(
-                              child: const Text("Cancel"),
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                            );
-                            Widget continueButton = TextButton(
-                              child: const Text("Delete"),
-                              onPressed: () async {
-                                await exportRepo.deleteExport(currentRow.id);
-                                if (!mounted) return;
-                                Navigator.of(context).pop();
-                                _loadData();
-                              },
-                            );
-                            // set up the AlertDialog
-                            AlertDialog alert = AlertDialog(
-                              title: const Text("Please confirm"),
-                              content:
-                                  const Text("The export will be deleted!"),
-                              actions: [
-                                cancelButton,
-                                continueButton,
-                              ],
-                            );
-                            // show the dialog
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return alert;
-                              },
-                            );
-                          },
-                        );
-                      }),
-                );
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
+                      ),
+                      SizedBox(
+                        height: 15,
+                      ),
+                      Text('No data found')
+                    ],
+                  ),
                 );
               }
-            },
-          ),
-        ],
-      ),
+              return RefreshIndicator(
+                onRefresh: _loadData,
+                child: ListView.builder(
+                    itemCount: _data.length,
+                    itemBuilder: (context, index) {
+                      final currentRow = _data[index];
+                      return ExportOverviewListTile(
+                        data: currentRow,
+                        onDelteCallback: () {
+                          // set up the buttons
+                          Widget cancelButton = TextButton(
+                            child: const Text("Cancel"),
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                          );
+                          Widget continueButton = TextButton(
+                            child: const Text("Delete"),
+                            onPressed: () async {
+                              await exportRepo.deleteExport(currentRow.id);
+                              if (!mounted) return;
+                              Navigator.of(context).pop();
+                              _loadData();
+                            },
+                          );
+                          // set up the AlertDialog
+                          AlertDialog alert = AlertDialog(
+                            title: const Text("Please confirm"),
+                            content: const Text("The export will be deleted!"),
+                            actions: [
+                              cancelButton,
+                              continueButton,
+                            ],
+                          );
+                          // show the dialog
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return alert;
+                            },
+                          );
+                        },
+                      );
+                    }),
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
+        ),
+      ],
     );
   }
 
