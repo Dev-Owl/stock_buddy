@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:stock_buddy/models/deopt_item.dart';
 import 'package:stock_buddy/repository/depot_line_repository.dart';
 import 'package:stock_buddy/utils/data_cell_helper.dart';
+import 'package:stock_buddy/widgets/depot_detail_line.dart';
 
 class DepotDetailsLineItems extends StatefulWidget {
   final String depotId;
@@ -33,9 +34,32 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
           note = "$note...";
         }
         return DataRow(
-          onSelectChanged: (value) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(const SnackBar(content: Text('Hello world')));
+          onSelectChanged: (value) async {
+            final note = TextEditingController();
+            final tags = TagController();
+            await showDialog(
+                context: context,
+                builder: (c) {
+                  return AlertDialog(
+                    content: SizedBox(
+                      width: 350,
+                      height: 250,
+                      child: DepotLineUpdate(
+                        controller: note,
+                        data: row,
+                        tagController: tags,
+                      ),
+                    ),
+                    actions: [
+                      TextButton(
+                          onPressed: () {
+                            Navigator.pop(c);
+                          },
+                          child: const Text('OK'))
+                    ],
+                  );
+                });
+            //TODO save the note and tags for the current row in the backend here
           },
           cells: [
             CellHelper.textCell(row.isin),
@@ -103,7 +127,7 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
             top: 55,
             left: 0,
             width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height - 55 * 2,
+            height: MediaQuery.of(context).size.height - 150,
             child: SingleChildScrollView(
               child: AdvancedPaginatedDataTable(
                 addEmptyRows: false,
