@@ -10,6 +10,20 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class DepotLineRepository extends BaseRepository {
   final Map<String, int> _totalCache = {};
 
+  Future<bool> updateLineDetails(
+      String id, String note, List<String> tags) async {
+    final result = await supabase
+        .from('depot_items')
+        .update(
+          {'note': note, 'tags': tags},
+          returning: ReturningOption.minimal,
+        )
+        .eq('id', id)
+        .execute();
+    handleNoValueResponse(result);
+    return true;
+  }
+
   Future<RemoteDataSourceDetails<DepotItem>> getPagedListOfItems(
       {required String depotId,
       String? filter,
@@ -72,6 +86,11 @@ class DepotLineItemsDataSource extends AdvancedDataTableSource<DepotItem> {
       pageSize: pageRequest.pageSize,
       sortAsc: pageRequest.sortAscending ?? true,
     );
+  }
+
+  void reloadCurrentView() {
+    forceRemoteReload = true;
+    notifyListeners();
   }
 
   @override

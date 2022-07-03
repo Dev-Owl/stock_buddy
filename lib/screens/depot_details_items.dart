@@ -35,7 +35,9 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
         }
         return DataRow(
           onSelectChanged: (value) async {
-            final note = TextEditingController();
+            final note = TextEditingController(
+              text: row.note,
+            );
             final tags = TagController();
             await showDialog(
                 context: context,
@@ -59,7 +61,9 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
                     ],
                   );
                 });
-            //TODO save the note and tags for the current row in the backend here
+            await DepotLineRepository()
+                .updateLineDetails(row.id, note.text, tags.getTags());
+            _source.reloadCurrentView();
           },
           cells: [
             CellHelper.textCell(row.isin),
