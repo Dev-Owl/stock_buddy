@@ -25,6 +25,7 @@ ExportLineItem _$ExportLineItemFromJson(Map<String, dynamic> json) =>
       DateTime.parse(json['created_at'] as String),
       json['id'] as String,
       json['owner_id'] as String,
+      (json['tags'] as List<dynamic>).map((e) => e as String).toList(),
     );
 
 Map<String, dynamic> _$ExportLineItemToJson(ExportLineItem instance) =>
@@ -46,4 +47,5 @@ Map<String, dynamic> _$ExportLineItemToJson(ExportLineItem instance) =>
       'current_total_value': instance.currentTotalValue,
       'current_win_loss': instance.currentWinLoss,
       'current_win_loss_percent': instance.currentWindLossPercent,
+      'tags': instance.tags,
     };

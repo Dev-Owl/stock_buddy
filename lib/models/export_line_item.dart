@@ -43,6 +43,8 @@ class ExportLineItem extends BaseDatabaseModel {
   @JsonKey(name: 'current_win_loss_percent')
   final double currentWindLossPercent;
 
+  final List<String> tags;
+
   ExportLineItem(
     this.exportId,
     this.isin,
@@ -61,6 +63,7 @@ class ExportLineItem extends BaseDatabaseModel {
     DateTime createdAt,
     String id,
     String ownerId,
+    this.tags,
   ) : super(createdAt, id, ownerId);
 
   factory ExportLineItem.fromJson(Map<String, dynamic> json) =>

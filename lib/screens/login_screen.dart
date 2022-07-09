@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +8,8 @@ import 'package:stock_buddy/utils/snackbar_extension.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  final String? resetToken;
+  const LoginScreen(this.resetToken, {Key? key}) : super(key: key);
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -22,6 +24,7 @@ class _LoginScreenState extends State<LoginScreen>
   final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
+    final resetMode = widget.resetToken != null;
     return Scaffold(
       appBar: AppBar(title: const Text('Log in')),
       body: ListView(
@@ -44,31 +47,32 @@ class _LoginScreenState extends State<LoginScreen>
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'Please login',
+                          resetMode ? 'Reset your password' : 'Please login',
                           style: Theme.of(context).textTheme.headline5,
                         ),
                         const SizedBox(height: 18),
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: FaIcon(FontAwesomeIcons.user),
+                        if (resetMode == false)
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              labelText: 'Email',
+                              prefixIcon: FaIcon(FontAwesomeIcons.user),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value?.isEmpty ?? true) {
+                                return 'Email required';
+                              }
+                              return null;
+                            },
+                            enabled: _isLoading == false,
                           ),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: (value) {
-                            if (value?.isEmpty ?? true) {
-                              return 'Email required';
-                            }
-                            return null;
-                          },
-                          enabled: _isLoading == false,
-                        ),
                         const SizedBox(height: 18),
                         TextFormField(
                           controller: _pwController,
-                          decoration: const InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: FaIcon(FontAwesomeIcons.key),
+                          decoration: InputDecoration(
+                            labelText: resetMode ? 'New password' : 'Password',
+                            prefixIcon: const FaIcon(FontAwesomeIcons.key),
                           ),
                           obscureText: true,
                           obscuringCharacter: '*',
@@ -85,12 +89,17 @@ class _LoginScreenState extends State<LoginScreen>
                             ? const CircularProgressIndicator()
                             : ElevatedButton(
                                 onPressed: _isLoading ? null : _signIn,
-                                child: const Text('Login'),
+                                child: Text(resetMode ? 'Reset' : 'Login'),
                               ),
                         if (_isLoading == false)
                           TextButton(
                             onPressed: _register,
                             child: const Text('Register'),
+                          ),
+                        if (showForgotPasswordLink && resetMode == false)
+                          TextButton(
+                            onPressed: _resetPw,
+                            child: const Text('Forgot password?'),
                           ),
                       ],
                     ),
@@ -108,6 +117,21 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() {
       _isLoading = newValue;
     });
+  }
+
+  Future<void> _resetPw() async {
+    if (_emailController.text.isNotEmpty) {
+      context.showSnackBar(message: 'Check your inbox for the used mail');
+      final res = await supabase.auth.api.resetPasswordForEmail(
+        _emailController.text,
+        options: AuthOptions(
+            redirectTo:
+                kIsWeb ? null : 'io.supabase.flutter://reset-callback/'),
+      );
+      print(res.error);
+    } else {
+      context.showErrorSnackBar(message: 'Email required');
+    }
   }
 
   Future<void> _register() async {
@@ -129,6 +153,18 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _signIn() async {
+    if (widget.resetToken != null) {
+      final res = await supabase.auth.api.updateUser(
+        widget.resetToken!,
+        UserAttributes(password: _pwController.text),
+      );
+      if (res.error != null) {
+        if (mounted) {
+          context.go('/');
+        }
+      }
+    }
+
     if (_formKey.currentState!.validate()) {
       _setLoading(true);
       runRequest<GotrueSessionResponse>(
@@ -144,6 +180,7 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  bool showForgotPasswordLink = false;
   void _handleResponse(GotrueSessionResponse result) {
     if (result.error == null) {
       if (_singUpCall) {
@@ -155,6 +192,7 @@ class _LoginScreenState extends State<LoginScreen>
       }
     } else {
       context.showErrorSnackBar(message: result.error!.message);
+      showForgotPasswordLink = true;
       _setLoading(false);
     }
   }

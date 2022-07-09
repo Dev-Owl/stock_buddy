@@ -253,7 +253,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
 
   Future<void> _onScreenFilter() {
     final txtController = TextEditingController();
-    String popupIsinFilter = "";
+    String popupTagFilter = "";
     return showDialog(
         context: context,
         builder: (c) {
@@ -279,17 +279,21 @@ class _ReportingScreenState extends State<ReportingScreen> {
                     TextField(
                       controller: txtController,
                       decoration: InputDecoration(
-                          suffixIcon: IconButton(
-                        onPressed: () {
-                          setStateList(
-                              () => popupIsinFilter = txtController.text);
-                        },
-                        icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
-                      )),
+                        suffixIcon: IconButton(
+                          onPressed: () {
+                            setStateList(
+                                () => popupTagFilter = txtController.text);
+                          },
+                          icon: const FaIcon(FontAwesomeIcons.magnifyingGlass),
+                        ),
+                      ),
+                      onSubmitted: (c) {
+                        setStateList(() => popupTagFilter = txtController.text);
+                      },
                     ),
                     ListTile(
                       title: const Text('Name'),
-                      subtitle: const Text('ISIN'),
+                      subtitle: const Text('ISIN,Tags'),
                       trailing: Checkbox(
                         onChanged: (d) {
                           if (d == true) {
@@ -297,9 +301,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
                               isinFilter.clear();
                               isinFilter.addAll(allAvalibleItems
                                   .where((element) =>
-                                      popupIsinFilter.isEmpty ||
-                                      element.isin == popupIsinFilter ||
-                                      element.isin.contains(popupIsinFilter))
+                                      onScreenFilter(element, popupTagFilter))
                                   .map((e) => e.isin));
                             }));
                           } else {
@@ -313,13 +315,31 @@ class _ReportingScreenState extends State<ReportingScreen> {
                       child: ListView(
                         children: allAvalibleItems
                             .where((element) =>
-                                popupIsinFilter.isEmpty ||
-                                element.isin == popupIsinFilter ||
-                                element.isin.contains(popupIsinFilter))
+                                onScreenFilter(element, popupTagFilter))
                             .map((e) => CheckboxListTile(
                                   value: isinFilter.contains(e.isin),
                                   title: Text(e.name),
-                                  subtitle: Text(e.isin),
+                                  isThreeLine: true,
+                                  subtitle: Wrap(
+                                    spacing: 2,
+                                    runSpacing: 2,
+                                    children: [
+                                      Chip(
+                                        label: Text(
+                                          e.isin,
+                                        ),
+                                      ),
+                                      ...e.tags
+                                          .map(
+                                            (e) => Chip(
+                                              label: Text(
+                                                e,
+                                              ),
+                                            ),
+                                          )
+                                          .toList()
+                                    ],
+                                  ),
                                   onChanged: (newState) {
                                     if (newState == true) {
                                       setStateList(() {
@@ -341,5 +361,13 @@ class _ReportingScreenState extends State<ReportingScreen> {
             ),
           );
         });
+  }
+
+  bool onScreenFilter(ExportLineItem element, String filter) {
+    filter = filter.toLowerCase();
+    return filter.isEmpty ||
+        element.isin.toLowerCase() == filter ||
+        element.isin.toLowerCase().contains(filter) ||
+        element.tags.any((s) => s.toLowerCase() == filter);
   }
 }

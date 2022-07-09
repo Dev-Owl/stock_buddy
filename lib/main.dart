@@ -8,15 +8,6 @@ import 'package:stock_buddy/screens/export_detail_screen.dart';
 import 'package:stock_buddy/screens/export_overview_screen.dart';
 import 'package:stock_buddy/screens/login_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
-/*
-  TODO List below, sorted by prio
-      - Allow to open a depot detail row and add/remove tags and update the note
-      - Allow to filter the report screen by tags
-      - Show the tags also in the report screen
-      - Depot line item screen show last known value
-      - Show the tags in the export detail rows
-      
-*/
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,9 +60,14 @@ class StockBuddy extends StatelessWidget {
           ],
         ),
         GoRoute(
-          path: '/login',
-          builder: (context, state) => const LoginScreen(),
-        ),
+            path: '/login',
+            builder: (context, state) {
+              var token = state.queryParams['resetToken'];
+              if (token != null && token.trim().isEmpty) {
+                token = null;
+              }
+              return LoginScreen(token);
+            }),
         GoRoute(
             name: 'reporting_overview',
             path: '/reporting/:depotNumber',
@@ -88,12 +84,20 @@ class StockBuddy extends StatelessWidget {
       ],
       redirect: (state) {
         final loggedIn = supabase.auth.currentUser != null;
+
         if (loggedIn) {
           return null;
         }
         final loggingIn = state.subloc == '/login';
+        String authResetToken = "";
         if (loggingIn == false) {
-          return '/login';
+          if (state.location.contains('recovery')) {
+            final parts = state.location.split('&').map((e) => e.split('='));
+            authResetToken = parts
+                .firstWhere((element) => element.first == 'access_token')
+                .last;
+          }
+          return '/login?resetToken=$authResetToken';
         }
         return null;
       });
