@@ -203,8 +203,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             ListTile(
               title: const Text('Logout'),
-              onTap: () {
-                supabase.auth.signOut().then((value) => context.go('/'));
+              onTap: () async {
+                final resp = await supabase.auth.signOut();
+                if (mounted) {
+                  context.go('/login');
+                }
               },
             ),
           ],

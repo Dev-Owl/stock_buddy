@@ -82,6 +82,10 @@ class _LoginScreenState extends State<LoginScreen>
                             }
                             return null;
                           },
+                          onFieldSubmitted: (_) {
+                            final callback = _isLoading ? null : _signIn;
+                            callback?.call();
+                          },
                           enabled: _isLoading == false,
                         ),
                         const SizedBox(height: 18),
@@ -158,9 +162,15 @@ class _LoginScreenState extends State<LoginScreen>
         widget.resetToken!,
         UserAttributes(password: _pwController.text),
       );
-      if (res.error != null) {
+      if (res.error == null) {
+        _pwController.text = "";
         if (mounted) {
+          context.showSnackBar(message: 'New password saved');
           context.go('/');
+        }
+      } else {
+        if (mounted) {
+          context.showErrorSnackBar(message: 'Something went wrong...');
         }
       }
       return;
