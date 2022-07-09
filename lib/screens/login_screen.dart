@@ -163,6 +163,7 @@ class _LoginScreenState extends State<LoginScreen>
           context.go('/');
         }
       }
+      return;
     }
 
     if (_formKey.currentState!.validate()) {
