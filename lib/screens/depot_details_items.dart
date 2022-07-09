@@ -2,9 +2,11 @@ import 'dart:math';
 
 import 'package:advanced_datatable/datatable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stock_buddy/models/deopt_item.dart';
 import 'package:stock_buddy/repository/depot_line_repository.dart';
 import 'package:stock_buddy/utils/data_cell_helper.dart';
+import 'package:stock_buddy/utils/snackbar_extension.dart';
 import 'package:stock_buddy/widgets/depot_detail_line.dart';
 
 class DepotDetailsLineItems extends StatefulWidget {
@@ -30,7 +32,7 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
       depotId: widget.depotId,
       getRowCallback: (DepotItem row) {
         var note = row.note?.substring(0, min(row.note?.length ?? 0, 30)) ?? '';
-        if (note.isNotEmpty) {
+        if (note.isNotEmpty && note.length > 30) {
           note = "$note...";
         }
         return DataRow(
@@ -66,7 +68,15 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
             _source.reloadCurrentView();
           },
           cells: [
-            CellHelper.textCell(row.isin),
+            DataCell(
+              Text(
+                row.isin,
+              ),
+              onLongPress: () {
+                Clipboard.setData(ClipboardData(text: row.isin));
+                context.showSnackBar(message: 'ISIN in clipboard');
+              },
+            ),
             CellHelper.textCell(row.name),
             DataCell(Wrap(
               children: [

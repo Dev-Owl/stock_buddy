@@ -43,7 +43,7 @@ class ExportLineItem extends BaseDatabaseModel {
   @JsonKey(name: 'current_win_loss_percent')
   final double currentWindLossPercent;
 
-  final List<String> tags;
+  final List<String>? tags;
 
   ExportLineItem(
     this.exportId,

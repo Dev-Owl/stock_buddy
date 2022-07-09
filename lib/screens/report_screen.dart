@@ -329,7 +329,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
                                           e.isin,
                                         ),
                                       ),
-                                      ...e.tags
+                                      ...(e.tags ?? [])
                                           .map(
                                             (e) => Chip(
                                               label: Text(
@@ -368,6 +368,6 @@ class _ReportingScreenState extends State<ReportingScreen> {
     return filter.isEmpty ||
         element.isin.toLowerCase() == filter ||
         element.isin.toLowerCase().contains(filter) ||
-        element.tags.any((s) => s.toLowerCase() == filter);
+        (element.tags?.any((s) => s.toLowerCase() == filter) ?? false);
   }
 }

@@ -9,6 +9,12 @@ import 'package:stock_buddy/screens/export_overview_screen.dart';
 import 'package:stock_buddy/screens/login_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
 
+/*
+    TODO: Export screen support tags
+          Depot line items show amount & WinLoss%
+          Going back from depot always main page
+*/
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final supbase = await initSupabase();
