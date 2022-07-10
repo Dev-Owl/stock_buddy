@@ -5,14 +5,13 @@ import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/screens/dashboard_screen.dart';
 import 'package:stock_buddy/screens/depot_detials.dart';
 import 'package:stock_buddy/screens/export_detail_screen.dart';
-import 'package:stock_buddy/screens/export_overview_screen.dart';
 import 'package:stock_buddy/screens/login_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
 
 /*
     TODO: Export screen support tags
           Depot line items show amount & WinLoss%
-          Going back from depot always main page
+          
 */
 
 Future<void> main() async {
@@ -41,27 +40,23 @@ class StockBuddy extends StatelessWidget {
           builder: (context, state) => const DashboardScreen(),
           routes: [
             GoRoute(
-                name: 'depot_details',
-                path: 'depot/:depotNumber',
-                builder: (context, state) {
-                  return DepotDetailPage(
+              name: 'depot_details',
+              path: 'depot/:depotNumber',
+              builder: (context, state) {
+                return DepotDetailPage(
+                  depotId: state.params['depotNumber']!,
+                );
+              },
+              routes: [
+                GoRoute(
+                  name: 'export_details',
+                  path: 'details/:exportId',
+                  builder: (context, state) => ExportDetailScreen(
+                    exportId: state.params['exportId']!,
                     depotId: state.params['depotNumber']!,
-                  );
-                }),
-            GoRoute(
-              name: 'export_overview',
-              path: 'export/:depotNumber',
-              builder: (context, state) => ExportOverviewScreen(
-                depotId: state.params['depotNumber']!,
-              ),
-            ),
-            GoRoute(
-              name: 'export_details',
-              path: 'export/:depotNumber/details/:exportId',
-              builder: (context, state) => ExportDetailScreen(
-                exportId: state.params['exportId']!,
-                depotId: state.params['depotNumber']!,
-              ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
