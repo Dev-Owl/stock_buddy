@@ -16,6 +16,8 @@ class CreateExportRecord {
   final double winLossPercent;
   @JsonKey(name: 'depot_id')
   final String depotId;
+  @JsonKey(name: 'total_spent')
+  final double totalValue;
 
   CreateExportRecord(
     this.exportDate,
@@ -24,6 +26,7 @@ class CreateExportRecord {
     this.winLossAmount,
     this.winLossPercent,
     this.depotId,
+    this.totalValue,
   );
   factory CreateExportRecord.fromJson(Map<String, dynamic> json) =>
       _$CreateExportRecordFromJson(json);

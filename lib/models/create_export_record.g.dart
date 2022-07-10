@@ -14,6 +14,7 @@ CreateExportRecord _$CreateExportRecordFromJson(Map<String, dynamic> json) =>
       (json['win_loss_amount'] as num).toDouble(),
       (json['win_loss_percent'] as num).toDouble(),
       json['depot_id'] as String,
+      (json['total_spent'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$CreateExportRecordToJson(CreateExportRecord instance) =>
@@ -24,4 +25,5 @@ Map<String, dynamic> _$CreateExportRecordToJson(CreateExportRecord instance) =>
       'win_loss_amount': instance.winLossAmount,
       'win_loss_percent': instance.winLossPercent,
       'depot_id': instance.depotId,
+      'total_spent': instance.totalValue,
     };

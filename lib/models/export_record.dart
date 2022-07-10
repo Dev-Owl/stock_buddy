@@ -17,18 +17,21 @@ class ExportRecord extends BaseDatabaseModel {
   final double winLossPercent;
   @JsonKey(name: 'depot_id')
   final String depotId;
+  @JsonKey(name: 'total_spent')
+  final double totalValue;
 
   ExportRecord(
-    this.exportDate,
-    this.customerName,
-    this.depotNumber,
-    DateTime createdAt,
-    String id,
-    String ownerId,
-    this.winLossAmount,
-    this.winLossPercent,
-    this.depotId,
-  ) : super(createdAt, id, ownerId);
+      this.exportDate,
+      this.customerName,
+      this.depotNumber,
+      DateTime createdAt,
+      String id,
+      String ownerId,
+      this.winLossAmount,
+      this.winLossPercent,
+      this.depotId,
+      this.totalValue)
+      : super(createdAt, id, ownerId);
 
   factory ExportRecord.fromJson(Map<String, dynamic> json) =>
       _$ExportRecordFromJson(json);

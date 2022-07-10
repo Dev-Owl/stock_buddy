@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:stock_buddy/models/export_record.dart';
 import 'package:stock_buddy/utils/text_helper.dart';
 
 class ExportOverviewListTile extends StatelessWidget {
   final ExportRecord data;
   final VoidCallback onDelteCallback;
-  const ExportOverviewListTile({
+  final DateFormat format = DateFormat.yMMMMEEEEd();
+  ExportOverviewListTile({
     required this.data,
     required this.onDelteCallback,
     Key? key,
@@ -41,8 +43,8 @@ class ExportOverviewListTile extends StatelessWidget {
       // The child of the Slidable is what the user sees when the
       // component is not dragged.
       child: ListTile(
-        title: Text(data.depotNumber),
-        subtitle: Text("From ${data.exportDate}"),
+        title: Text('Total invest: ${data.totalValue}€'),
+        subtitle: Text("Export from ${format.format(data.exportDate)}"),
         trailing: TextHelper.number(
           data.winLossPercent,
           decoration: '%',

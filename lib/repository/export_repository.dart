@@ -83,6 +83,7 @@ class ExportRepositories extends BaseRepository {
       totalWinLoss,
       percentageTotalWinLoss,
       depoID,
+      totalInvest,
     );
     final response = await supabase
         .from('depot_exports')
