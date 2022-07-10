@@ -78,13 +78,30 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
               },
             ),
             CellHelper.textCell(row.name),
-            DataCell(Wrap(
-              children: [
-                ...row.tags?.map((e) => Chip(label: Text(e))).toList() ??
-                    [const Text('')]
-              ],
-            )),
+            DataCell(
+              Wrap(
+                children: [
+                  ...row.tags?.map((e) => Chip(label: Text(e))).toList() ??
+                      [const Text('')]
+                ],
+              ),
+            ),
             CellHelper.textCell(note),
+            CellHelper.number(
+              row.lastTotalValue,
+              decoration: '€',
+              context: context,
+            ),
+            CellHelper.number(
+              row.lastWinLoss,
+              decoration: '€',
+              context: context,
+            ),
+            CellHelper.number(
+              row.lastWinLossPrecent,
+              decoration: '%',
+              context: context,
+            )
           ],
         );
       },
@@ -98,6 +115,7 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Scaffold(
       body: Stack(
         children: [
@@ -143,44 +161,61 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height - 150,
             child: SingleChildScrollView(
-              child: AdvancedPaginatedDataTable(
-                addEmptyRows: false,
-                source: _source,
-                showHorizontalScrollbarAlways: true,
-                sortAscending: _sortAsc,
-                sortColumnIndex: _sortIndex,
-                showFirstLastButtons: true,
-                rowsPerPage: _rowsPerPage,
-                showCheckboxColumn: false,
-                availableRowsPerPage: const [10, 20, 30, 50],
-                loadingWidget: () =>
-                    const Center(child: CircularProgressIndicator()),
-                onRowsPerPageChanged: (newRowsPerPage) {
-                  if (newRowsPerPage != null) {
-                    setState(() {
-                      _rowsPerPage = newRowsPerPage;
-                    });
-                  }
-                },
-                columns: [
-                  DataColumn(
-                    label: const Text('ISIN'),
-                    numeric: false,
-                    onSort: setSort,
-                  ),
-                  DataColumn(
-                    label: const Text('Name'),
-                    onSort: setSort,
-                  ),
-                  DataColumn(
-                    label: const Text('Tags'),
-                    onSort: setSort,
-                  ),
-                  DataColumn(
-                    label: const Text('Note'),
-                    onSort: setSort,
-                  ),
-                ],
+              child: SizedBox(
+                width: size.width,
+                child: AdvancedPaginatedDataTable(
+                  addEmptyRows: false,
+                  source: _source,
+                  showHorizontalScrollbarAlways: true,
+                  sortAscending: _sortAsc,
+                  sortColumnIndex: _sortIndex,
+                  showFirstLastButtons: true,
+                  rowsPerPage: _rowsPerPage,
+                  showCheckboxColumn: false,
+                  availableRowsPerPage: const [10, 20, 30, 50],
+                  loadingWidget: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  onRowsPerPageChanged: (newRowsPerPage) {
+                    if (newRowsPerPage != null) {
+                      setState(() {
+                        _rowsPerPage = newRowsPerPage;
+                      });
+                    }
+                  },
+                  columns: [
+                    DataColumn(
+                      label: const Text('ISIN'),
+                      onSort: setSort,
+                    ),
+                    DataColumn(
+                      label: const Text('Name'),
+                      onSort: setSort,
+                    ),
+                    DataColumn(
+                      label: const Text('Tags'),
+                      onSort: setSort,
+                    ),
+                    DataColumn(
+                      label: const Text('Note'),
+                      onSort: setSort,
+                    ),
+                    DataColumn(
+                      label: const Text('Total invest'),
+                      onSort: setSort,
+                      numeric: true,
+                    ),
+                    DataColumn(
+                      label: const Text('Win/Loss €'),
+                      onSort: setSort,
+                      numeric: true,
+                    ),
+                    DataColumn(
+                      label: const Text('Win/Loss %'),
+                      onSort: setSort,
+                      numeric: true,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

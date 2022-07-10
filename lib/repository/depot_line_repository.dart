@@ -36,6 +36,9 @@ class DepotLineRepository extends BaseRepository {
       1: 'name',
       2: 'tags',
       3: 'note',
+      4: 'last_total_value',
+      5: 'last_win_loss',
+      6: 'last_win_loss_percent',
     };
     final rangeTo = offset + pageSize;
     var result = await supabase

@@ -9,9 +9,7 @@ import 'package:stock_buddy/screens/login_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
 
 /*
-    TODO: Export screen support tags
-          Depot line items show amount & WinLoss%
-          
+  TODO Test import if new columns updated correctly
 */
 
 Future<void> main() async {

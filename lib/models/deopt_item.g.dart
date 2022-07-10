@@ -15,6 +15,9 @@ DepotItem _$DepotItemFromJson(Map<String, dynamic> json) => DepotItem(
       json['depot_id'] as String,
       json['note'] as String?,
       json['name'] as String,
+      (json['last_total_value'] as num).toDouble(),
+      (json['last_win_loss'] as num).toDouble(),
+      (json['last_win_loss_percent'] as num).toDouble(),
     );
 
 Map<String, dynamic> _$DepotItemToJson(DepotItem instance) => <String, dynamic>{
@@ -26,4 +29,7 @@ Map<String, dynamic> _$DepotItemToJson(DepotItem instance) => <String, dynamic>{
       'note': instance.note,
       'name': instance.name,
       'depot_id': instance.depotId,
+      'last_total_value': instance.lastTotalValue,
+      'last_win_loss': instance.lastWinLoss,
+      'last_win_loss_percent': instance.lastWinLossPrecent,
     };

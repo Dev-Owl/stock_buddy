@@ -11,6 +11,12 @@ class DepotItem extends BaseDatabaseModel {
   final String name;
   @JsonKey(name: 'depot_id')
   final String depotId;
+  @JsonKey(name: 'last_total_value')
+  final double lastTotalValue;
+  @JsonKey(name: 'last_win_loss')
+  final double lastWinLoss;
+  @JsonKey(name: 'last_win_loss_percent')
+  final double lastWinLossPrecent;
 
   factory DepotItem.fromJson(Map<String, dynamic> json) =>
       _$DepotItemFromJson(json);
@@ -24,6 +30,9 @@ class DepotItem extends BaseDatabaseModel {
     this.depotId,
     this.note,
     this.name,
+    this.lastTotalValue,
+    this.lastWinLoss,
+    this.lastWinLossPrecent,
   ) : super(createdAt, id, ownerId);
 
   Map<String, dynamic> toJson() => _$DepotItemToJson(this);
