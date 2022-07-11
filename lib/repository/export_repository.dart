@@ -157,26 +157,11 @@ class ExportRepositories extends BaseRepository {
           .execute();
       handleNoValueResponse(lineItemCreation);
       //Update the stats for depot items
-      final updateMap = [<String, dynamic>{}];
-      for (var keyValue in isinDepotItemMapping.entries) {
-        final importItem = result.lineItems
-            .where((element) => element.isin == keyValue.key)
-            .first;
-        updateMap.add({
-          'id': keyValue.value,
-          'last_total_value': importItem.totalPurchasePrice,
-          'last_win_loss': importItem.currentWinLoss,
-          'last_win_loss_percent': importItem.currentWindLossPercent,
-        });
-      }
-      final statUpdateResponse = await supabase
-          .from('depot_items')
-          .upsert(
-            updateMap,
-            returning: ReturningOption.minimal,
-          )
-          .execute();
-      handleNoValueResponse(statUpdateResponse);
+      final listOfUpdatedIsins = result.lineItems.map((e) => e.isin).toList();
+      final updateRequest = await supabase.rpc('updatedepotitems', params: {
+        'isinFilter': listOfUpdatedIsins,
+      }).execute();
+      handleNoValueResponse(updateRequest);
     }
 
     return handleResponse(response, null);
