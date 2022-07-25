@@ -159,7 +159,7 @@ class ExportRepositories extends BaseRepository {
       //Update the stats for depot items
       final listOfUpdatedIsins = result.lineItems.map((e) => e.isin).toList();
       final updateRequest = await supabase.rpc('updatedepotitems', params: {
-        'isinFilter': listOfUpdatedIsins,
+        'isinfilter': listOfUpdatedIsins,
       }).execute();
       handleNoValueResponse(updateRequest);
     }
