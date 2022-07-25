@@ -9,7 +9,11 @@ import 'package:stock_buddy/screens/login_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
 
 /*
-  TODO Test import if new columns updated correctly
+  TODO:
+  Add option to book dividends to a position (via import file?)
+  Trigger on divdend table to update totla divdend on change
+  Show dividends in chart view 
+  Show dividends total in depot line itme screen
 */
 
 Future<void> main() async {
