@@ -5,6 +5,7 @@ import 'package:stock_buddy/widgets/edit_notes.dart';
 typedef GetTagList = List<String> Function();
 
 class TagController {
+  late bool activeState;
   late final GetTagList getTags;
 }
 
@@ -27,11 +28,13 @@ class DepotLineUpdate extends StatefulWidget {
 class _DepotLineUpdateState extends State<DepotLineUpdate> {
   List<String> tags = [];
   final tagControll = TextEditingController();
+  late bool active;
   @override
   void initState() {
     super.initState();
-
+    active = widget.data.active;
     widget.controller.text = widget.data.note ?? '';
+    widget.tagController.activeState = widget.data.active;
     if (widget.data.tags != null) {
       tags.addAll(widget.data.tags!);
     }
@@ -42,6 +45,16 @@ class _DepotLineUpdateState extends State<DepotLineUpdate> {
   Widget build(BuildContext context) {
     return ListView(
       children: [
+        CheckboxListTile(
+          value: active,
+          title: const Text('Active'),
+          onChanged: (newValue) {
+            setState(() {
+              active = newValue ?? false;
+              widget.tagController.activeState = active;
+            });
+          },
+        ),
         const Text('Note'),
         const Padding(padding: EdgeInsets.only(top: 10)),
         EditNotes(

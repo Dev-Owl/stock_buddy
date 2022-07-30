@@ -11,11 +11,19 @@ class DepotLineRepository extends BaseRepository {
   final Map<String, int> _totalCache = {};
 
   Future<bool> updateLineDetails(
-      String id, String note, List<String> tags) async {
+    String id,
+    String note,
+    List<String> tags,
+    bool active,
+  ) async {
     final result = await supabase
         .from('depot_items')
         .update(
-          {'note': note, 'tags': tags},
+          {
+            'note': note,
+            'tags': tags,
+            'active': active,
+          },
           returning: ReturningOption.minimal,
         )
         .eq('id', id)

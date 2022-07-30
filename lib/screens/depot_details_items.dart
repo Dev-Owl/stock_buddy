@@ -41,7 +41,7 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
             final note = TextEditingController(
               text: row.note,
             );
-            final tags = TagController();
+            final lineItemUpdateController = TagController();
             await showDialog(
                 context: context,
                 builder: (c) {
@@ -52,7 +52,7 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
                       child: DepotLineUpdate(
                         controller: note,
                         data: row,
-                        tagController: tags,
+                        tagController: lineItemUpdateController,
                       ),
                     ),
                     actions: [
@@ -64,8 +64,12 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
                     ],
                   );
                 });
-            await DepotLineRepository()
-                .updateLineDetails(row.id, note.text, tags.getTags());
+            await DepotLineRepository().updateLineDetails(
+              row.id,
+              note.text,
+              lineItemUpdateController.getTags(),
+              lineItemUpdateController.activeState,
+            );
             _source.reloadCurrentView();
           },
           cells: [
