@@ -78,7 +78,9 @@ class DepotLineRepository extends BaseRepository {
     return RemoteDataSourceDetails<DepotItem>(
       _totalCache[depotId]!,
       result.data!,
-      filteredRows: filter == null ? null : result.data!.length,
+      filteredRows: filter == null && showActiveOnly == false
+          ? null
+          : result.data!.length,
     );
   }
 }
