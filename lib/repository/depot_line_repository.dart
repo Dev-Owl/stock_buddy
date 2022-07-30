@@ -24,13 +24,15 @@ class DepotLineRepository extends BaseRepository {
     return true;
   }
 
-  Future<RemoteDataSourceDetails<DepotItem>> getPagedListOfItems(
-      {required String depotId,
-      String? filter,
-      required int offset,
-      required int orderIndex,
-      required int pageSize,
-      required bool sortAsc}) async {
+  Future<RemoteDataSourceDetails<DepotItem>> getPagedListOfItems({
+    required String depotId,
+    String? filter,
+    required int offset,
+    required int orderIndex,
+    required int pageSize,
+    required bool sortAsc,
+    required bool showActiveOnly,
+  }) async {
     const orderColumnMap = {
       0: 'isin',
       1: 'name',
@@ -42,8 +44,14 @@ class DepotLineRepository extends BaseRepository {
     };
     final rangeTo = offset + pageSize;
     var result = await supabase
-        .rpc('depotlinetable',
-            params: {'depotidfilter': depotId, 'filter': filter})
+        .rpc(
+          'depotlinetable',
+          params: {
+            'depotidfilter': depotId,
+            'filter': filter,
+            'activeonly': showActiveOnly,
+          },
+        )
         .order(orderColumnMap[orderIndex]!, ascending: sortAsc)
         .range(offset, rangeTo)
         .withConverter((data) => ModelConverter.modelList(
@@ -72,6 +80,7 @@ class DepotLineItemsDataSource extends AdvancedDataTableSource<DepotItem> {
   final String depotId;
   final _repo = DepotLineRepository();
   String? _lastSearchQuery;
+  bool _showActiveOnly = true;
 
   DepotLineItemsDataSource({
     required this.depotId,
@@ -88,6 +97,7 @@ class DepotLineItemsDataSource extends AdvancedDataTableSource<DepotItem> {
       orderIndex: pageRequest.columnSortIndex ?? 2,
       pageSize: pageRequest.pageSize,
       sortAsc: pageRequest.sortAscending ?? true,
+      showActiveOnly: _showActiveOnly,
     );
   }
 
@@ -104,9 +114,11 @@ class DepotLineItemsDataSource extends AdvancedDataTableSource<DepotItem> {
   @override
   int get selectedRowCount => 0; //this source doesnt support this
 
-  void applyServerSideFilter(String? newSearchQuery) {
-    if (newSearchQuery != _lastSearchQuery) {
+  void applyServerSideFilter(String? newSearchQuery, bool showActiveOnly) {
+    if (newSearchQuery != _lastSearchQuery ||
+        _showActiveOnly != showActiveOnly) {
       _lastSearchQuery = newSearchQuery;
+      _showActiveOnly = showActiveOnly;
       setNextView();
     }
   }

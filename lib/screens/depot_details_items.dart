@@ -24,6 +24,7 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
   var _sortIndex = 0;
   var _sortAsc = true;
   var _rowsPerPage = AdvancedPaginatedDataTable.defaultRowsPerPage;
+  var showActiveOnly = true;
 
   @override
   void initState() {
@@ -124,6 +125,22 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                IconButton(
+                  tooltip: showActiveOnly
+                      ? 'Currently showing only active'
+                      : 'Currently showing all',
+                  onPressed: () {
+                    setState(() {
+                      showActiveOnly = !showActiveOnly;
+                    });
+
+                    _source.applyServerSideFilter(
+                        _searchController.text, showActiveOnly);
+                  },
+                  icon: Icon(showActiveOnly
+                      ? Icons.monetization_on_rounded
+                      : Icons.monetization_on_outlined),
+                ),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(left: 10),
@@ -133,7 +150,10 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
                         labelText: 'Search by ISIN/tag',
                       ),
                       onSubmitted: (vlaue) {
-                        _source.applyServerSideFilter(_searchController.text);
+                        _source.applyServerSideFilter(
+                          _searchController.text,
+                          showActiveOnly,
+                        );
                       },
                     ),
                   ),
@@ -143,13 +163,18 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
                     setState(() {
                       _searchController.text = '';
                     });
-                    _source.applyServerSideFilter(_searchController.text);
+                    _source.applyServerSideFilter(
+                      _searchController.text,
+                      showActiveOnly,
+                    );
                   },
                   icon: const Icon(Icons.clear),
                 ),
                 IconButton(
-                  onPressed: () =>
-                      _source.applyServerSideFilter(_searchController.text),
+                  onPressed: () => _source.applyServerSideFilter(
+                    _searchController.text,
+                    showActiveOnly,
+                  ),
                   icon: const Icon(Icons.search),
                 ),
               ],
