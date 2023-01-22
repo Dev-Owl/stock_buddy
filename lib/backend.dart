@@ -1,13 +1,76 @@
+import 'package:flutter/material.dart';
+import 'package:stock_buddy/utils/model_converter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-late final SupabaseClient supabase;
+const String debugUrl = "http://localhost:3000";
 
-Future<Supabase> initSupabase() async {
-  final supa = await Supabase.initialize(
-    url: 'https://arkrdisigpfecmytpnao.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFya3JkaXNpZ3BmZWNteXRwbmFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NTUzOTY0OTcsImV4cCI6MTk3MDk3MjQ5N30.qazUFsn5ZnFo31YA644Dbyb8XdE9V2_SiPwyWcLA-FM',
-  );
-  supabase = supa.client;
-  return supa;
+class StockBuddyBackend {
+  static StockBuddyBackend? _instance;
+
+  static StockBuddyBackend getInstance({String? url}) {
+    _instance ??= StockBuddyBackend(url ?? debugUrl);
+    return _instance!;
+  }
+
+  late final PostgrestClient client;
+  DateTime? tokenEndOfLife;
+  String? userName;
+  String? userPassword;
+
+  StockBuddyBackend(
+    String baseUrl, {
+    this.userName,
+    this.userPassword,
+  }) {
+    client = PostgrestClient(baseUrl);
+  }
+
+  bool get hasLoginDetails => userName != null && userPassword != null;
+
+  void removeSessionInfos() {
+    userName = null;
+    userPassword = null;
+    tokenEndOfLife = null;
+    client.headers.remove("Authorization");
+  }
+
+  Future<String> generateNewAuthToken() async {
+    if (tokenEndOfLife == null ||
+        tokenEndOfLife!.isAfter(DateTime.now().toUtc())) {
+      // Auth needed
+      if (userName == null || userPassword == null) {
+        throw "User name or password is missing";
+      }
+
+      final token = await client.rpc("authenticate", params: {
+        "username": userName,
+        "password": userPassword,
+      }).withConverter((data) => ModelConverter.first<String>(
+          data, (singleElement) => singleElement['token']));
+      tokenEndOfLife = DateTime.now().toUtc().add(
+            const Duration(
+              minutes: 4,
+              seconds: 50,
+            ),
+          );
+      client.auth(token);
+      return token;
+    }
+    return client.headers["Authorization"]!.substring(7);
+  }
+
+  Future<PostgrestClient> getAuthenticatedClient() async {
+    await generateNewAuthToken();
+    return client;
+  }
+
+  Future<T> runAuthenticatedRequest<T>(
+      Future<T> Function(PostgrestClient client) action) async {
+    try {
+      return action(await getAuthenticatedClient());
+    } catch (ex) {
+      debugPrint(ex.toString());
+      rethrow;
+    }
+  }
 }

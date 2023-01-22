@@ -1,4 +1,4 @@
-import 'package:stock_buddy/backend.dart';
+import 'package:postgrest/postgrest.dart';
 import 'package:stock_buddy/models/create_depot_item.dart';
 import 'package:stock_buddy/models/create_export_record.dart';
 import 'package:stock_buddy/models/deopt_item.dart';
@@ -8,42 +8,50 @@ import 'package:stock_buddy/repository/depot_repository.dart';
 import 'package:stock_buddy/utils/duplicate_export_exception.dart';
 import 'package:stock_buddy/utils/ing_diba_export_reader.dart';
 import 'package:stock_buddy/utils/model_converter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 typedef UserActionNeededCallback<T> = Future<T> Function();
 
 class ExportRepositories extends BaseRepository {
+  ExportRepositories(super.backend);
+
   Future<List<ExportRecord>> getAllExportsForDept(String depotId) async {
-    final response = await supabase
-        .from('depot_exports')
-        .select()
-        .eq('depot_id', depotId)
-        .order(
-          'export_time',
-          ascending: false,
-        )
-        .withConverter<List<ExportRecord>>(
-          (data) => ModelConverter.modelList(
-            data,
-            (singleElement) => ExportRecord.fromJson(
-              singleElement,
+    return await backend
+        .runAuthenticatedRequest<List<ExportRecord>>((client) async {
+      final response = await client
+          .from('depot_exports')
+          .select()
+          .eq('depot_id', depotId)
+          .order(
+            'export_time',
+            ascending: false,
+          )
+          .withConverter<List<ExportRecord>>(
+            (data) => ModelConverter.modelList(
+              data,
+              (singleElement) => ExportRecord.fromJson(
+                singleElement,
+              ),
             ),
-          ),
-        )
-        .execute();
-    return handleResponse(response, []);
+          );
+      return response;
+    });
   }
 
   Future<bool> doesExportForDepotExists(
       String depotId, DateTime exportTime) async {
-    final response = await supabase
-        .from('depot_exports')
-        .select('id')
-        .eq('depot_id', depotId)
-        .eq('export_time', exportTime)
-        .execute(count: CountOption.exact);
-    handleNoValueResponse(response);
-    return (response.count ?? 0) == 1;
+    return await backend.runAuthenticatedRequest<bool>((client) async {
+      final response = await client
+          .from('depot_exports')
+          .select(
+              'id',
+              const FetchOptions(
+                count: CountOption.exact,
+              ))
+          .eq('depot_id', depotId)
+          .eq('export_time', exportTime);
+      handleNoValueResponse(response);
+      return (response.count ?? 0) == 1;
+    });
   }
 
   Future<ExportRecord?> importNewData(
@@ -53,7 +61,7 @@ class ExportRepositories extends BaseRepository {
     final reader = ExportReader();
 
     final result = await reader.parseFile(pathToExportFile);
-    final depotRepo = DepotRepository();
+    final depotRepo = DepotRepository(backend);
     var depoID = await depotRepo.getRepositoryIdByNumber(result.depotNumber);
 
     if (depoID == null) {
@@ -61,7 +69,7 @@ class ExportRepositories extends BaseRepository {
       if (newDepotName.isEmpty) {
         newDepotName = result.customerName;
       }
-      final depotRepo = DepotRepository();
+      final depotRepo = DepotRepository(backend);
       depoID =
           (await depotRepo.createNewDepot(newDepotName, result.depotNumber)).id;
     }
@@ -85,42 +93,39 @@ class ExportRepositories extends BaseRepository {
       depoID,
       totalInvest,
     );
-    final response = await supabase
-        .from('depot_exports')
-        .insert(
-          creationModel.toJson(),
-        )
-        .withConverter(
-          (responseData) => ModelConverter.first(
-            responseData,
-            (singleElement) => ExportRecord.fromJson(singleElement),
-          ),
-        )
-        .execute();
+    return await backend.runAuthenticatedRequest<ExportRecord?>((client) async {
+      final response = await client
+          .from('depot_exports')
+          .insert(
+            creationModel.toJson(),
+          )
+          .select()
+          .withConverter(
+            (responseData) => ModelConverter.first(
+              responseData,
+              (singleElement) => ExportRecord.fromJson(singleElement),
+            ),
+          );
 
-    if (response.data != null) {
-      final parentId = response.data!.id;
+      final parentId = response.id;
       //Ensure we have depot line item for all
       final isinList = result.lineItems.map((e) => e.isin).toList();
-      final depotItemsResponse = await supabase
+      final depotItemsResponse = await client
           .from('depot_items')
           .select('id,isin')
           .eq('depot_id', depoID)
           .withConverter((data) => ModelConverter.modelList(
               data,
               (singleElement) => MapEntry(singleElement['isin'].toString(),
-                  singleElement['id'].toString())))
-          .execute();
-      handleNoValueResponse(depotItemsResponse);
+                  singleElement['id'].toString())));
+
       isinList.removeWhere((isin) =>
-          depotItemsResponse.data
-              ?.any((isinMapping) => isinMapping.key == isin) ??
-          false);
+          depotItemsResponse.any((isinMapping) => isinMapping.key == isin));
       Map<String, String> isinDepotItemMapping = {};
-      isinDepotItemMapping.addEntries(depotItemsResponse.data ?? []);
+      isinDepotItemMapping.addEntries(depotItemsResponse);
       if (isinList.isNotEmpty) {
         //All items in here are missing a record until now
-        final creatioResponse = await supabase
+        final creatioResponse = await client
             .from('depot_items')
             .insert(isinList
                 .map(
@@ -133,50 +138,51 @@ class ExportRepositories extends BaseRepository {
                   ),
                 )
                 .toList())
+            .select()
             .withConverter((data) => ModelConverter.modelList(
-                data, (singleElement) => DepotItem.fromJson(singleElement)))
-            .execute();
-        final newRows = handleNeverNullResponse(creatioResponse);
-        for (var element in newRows) {
+                data, (singleElement) => DepotItem.fromJson(singleElement)));
+        for (var element in creatioResponse) {
           isinDepotItemMapping[element.isin] = element.id;
         }
       }
 
-      final lineItemCreation = await supabase
-          .from('line_items')
-          .insert(
-              result.lineItems
-                  .map(
-                    (e) => e.toCreateDto(
-                      parentId,
-                      isinDepotItemMapping[e.isin]!,
-                    ),
-                  )
-                  .toList(),
-              returning: ReturningOption.minimal)
-          .execute();
-      handleNoValueResponse(lineItemCreation);
+      await client.from('line_items').insert(
+            result.lineItems
+                .map(
+                  (e) => e.toCreateDto(
+                    parentId,
+                    isinDepotItemMapping[e.isin]!,
+                  ),
+                )
+                .toList(),
+          );
       //Update the stats for depot items
       final listOfUpdatedIsins = result.lineItems.map((e) => e.isin).toList();
-      final updateRequest = await supabase.rpc('updatedepotitems', params: {
-        'isinfilter': listOfUpdatedIsins,
-      }).execute();
+      final updateRequest = await client.rpc('updatedepotitems',
+          params: {
+            'isinfilter': listOfUpdatedIsins,
+          },
+          options: const FetchOptions(
+            forceResponse: true,
+          ));
       handleNoValueResponse(updateRequest);
-    }
 
-    return handleResponse(response, null);
+      return response;
+    });
   }
 
   Future<bool> deleteExport(String exportID) async {
-    try {
-      final result = await supabase
-          .from('depot_exports')
-          .delete(returning: ReturningOption.minimal)
-          .match({'id': exportID}).execute();
-      handleNoValueResponse(result);
-      return true;
-    } catch (ex) {
-      return false;
-    }
+    return await backend.runAuthenticatedRequest<bool>((client) async {
+      try {
+        final result = await client
+            .from('depot_exports')
+            .delete()
+            .match({'id': exportID}).select();
+        handleNoValueResponse(result);
+        return true;
+      } catch (ex) {
+        return false;
+      }
+    });
   }
 }

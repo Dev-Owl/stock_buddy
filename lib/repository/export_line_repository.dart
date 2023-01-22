@@ -1,13 +1,15 @@
 import 'package:advanced_datatable/advanced_datatable_source.dart';
 import 'package:flutter/material.dart';
+import 'package:postgrest/postgrest.dart';
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/export_line_item.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
 import 'package:stock_buddy/utils/model_converter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ExportLineRepository extends BaseRepository {
   final Map<String, int> _totalCache = {};
+
+  ExportLineRepository(super.backend);
 
   Future<RemoteDataSourceDetails<ExportLineItem>> getPagedListOfItems({
     required String exportId,
@@ -29,39 +31,51 @@ class ExportLineRepository extends BaseRepository {
       8: 'current_win_loss',
       9: 'current_win_loss_percent'
     };
-    var query = supabase.from("line_items").select().eq("export_id", exportId);
-    if (isinFilter != null) {
-      query = query.ilike("isin", "%$isinFilter%");
-    }
-    final rangeTo = offset + pageSize;
-    final response = await query
-        .order(orderColumnMap[orderIndex]!, ascending: sortAsc)
-        .range(offset, rangeTo)
-        .withConverter<List<ExportLineItem>>(
-          (data) => ModelConverter.modelList(
-            data,
-            (singleElement) => ExportLineItem.fromJson(
-              singleElement,
-            ),
-          ),
-        )
-        .execute();
-    handleNeverNullResponse(response);
-
-    if (_totalCache.containsKey(exportId) == false) {
-      final response = await supabase
+    return await backend
+        .runAuthenticatedRequest<RemoteDataSourceDetails<ExportLineItem>>(
+            (client) async {
+      var query = client
           .from("line_items")
-          .select('id')
-          .eq("export_id", exportId)
-          .execute(count: CountOption.exact);
-      handleNoValueResponse(response);
-      _totalCache[exportId] = response.count ?? 0;
-    }
-    return RemoteDataSourceDetails<ExportLineItem>(
-      _totalCache[exportId]!,
-      response.data!,
-      filteredRows: isinFilter == null ? null : response.data!.length,
-    );
+          .select(
+            "*",
+          )
+          .eq("export_id", exportId);
+      if (isinFilter != null) {
+        query = query.ilike("isin", "%$isinFilter%");
+      }
+      final rangeTo = offset + pageSize;
+      final response = await query
+          .order(orderColumnMap[orderIndex]!, ascending: sortAsc)
+          .range(offset, rangeTo)
+          .withConverter<List<ExportLineItem>>(
+            (data) => ModelConverter.modelList(
+              data,
+              (singleElement) => ExportLineItem.fromJson(
+                singleElement,
+              ),
+            ),
+          );
+      //handleNeverNullResponse(response);
+
+      if (_totalCache.containsKey(exportId) == false) {
+        //TODO Test me
+        final response = await client
+            .from("line_items")
+            .select(
+                'id',
+                const FetchOptions(
+                  count: CountOption.exact,
+                ))
+            .eq("export_id", exportId);
+        handleNoValueResponse(response);
+        _totalCache[exportId] = response.count ?? 0;
+      }
+      return RemoteDataSourceDetails<ExportLineItem>(
+        _totalCache[exportId]!,
+        response,
+        filteredRows: isinFilter == null ? null : response.length,
+      );
+    });
   }
 }
 
@@ -70,17 +84,21 @@ typedef OnNewPageLoadCallback<T> = void Function(
     RemoteDataSourceDetails<T> newpage);
 
 class ExportLineDataAdapter extends AdvancedDataTableSource<ExportLineItem> {
-  final _repo = ExportLineRepository();
+  late final ExportLineRepository _repo;
   final List<ExportLineItem> selectedRows = [];
   final String parentExportId;
   String? _lastSearchQuery;
   final GetRowCallback<ExportLineItem> getRowCallback;
   final OnNewPageLoadCallback<ExportLineItem> onNewPage;
+  final StockBuddyBackend backend;
   ExportLineDataAdapter({
     required this.parentExportId,
     required this.getRowCallback,
     required this.onNewPage,
-  });
+    required this.backend,
+  }) {
+    _repo = ExportLineRepository(backend);
+  }
 
   void addSelectedRow(ExportLineItem row) {
     selectedRows.add(row);

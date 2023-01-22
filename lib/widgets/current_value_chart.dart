@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stock_buddy/models/report_chart_model.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:charts_flutter_new/flutter.dart' as charts;
 import 'package:stock_buddy/utils/chart_helper.dart';
 
 class CurrentValueChar extends StatelessWidget {

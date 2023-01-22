@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/export_line_item.dart';
 import 'package:stock_buddy/models/report_screen_model.dart';
 import 'package:stock_buddy/repository/reporting_repository.dart';
@@ -38,7 +40,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
   }
 
   Future<void> _loadingReport() async {
-    final repo = ReportingRepository();
+    final repo = ReportingRepository(context.read<StockBuddyBackend>());
     data = await repo.buildReportingModel(
       widget.depotId,
       isinFilter: isinFilter,

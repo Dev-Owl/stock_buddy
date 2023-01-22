@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stock_buddy/models/export_line_item.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:charts_flutter_new/flutter.dart' as charts;
 
 class PercentagePieChart extends StatelessWidget {
   final List<ExportLineItem> items;

@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:postgrest/postgrest.dart';
 import 'package:stock_buddy/utils/snackbar_extension.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 mixin DefautltResponseHandler<T extends StatefulWidget> on State<T> {
   Future<void> runRequest<D>(
@@ -11,7 +11,7 @@ mixin DefautltResponseHandler<T extends StatefulWidget> on State<T> {
   }) async {
     try {
       succsess(await request);
-    } on PostgrestError catch (ex) {
+    } on PostgrestException catch (ex) {
       if (fail != null) {
         fail(ex);
       } else {

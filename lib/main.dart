@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/screens/dashboard_screen.dart';
 import 'package:stock_buddy/screens/depot_detials.dart';
@@ -18,13 +19,15 @@ import 'package:stock_buddy/screens/report_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final supbase = await initSupabase();
-
+  final prefs = await SharedPreferences.getInstance();
   runApp(
     MultiProvider(
       providers: [
+        Provider(
+          create: (d) => StockBuddyBackend.getInstance(),
+        ),
         Provider.value(
-          value: supbase.client,
+          value: prefs,
         ),
       ],
       child: StockBuddy(),
@@ -65,11 +68,11 @@ class StockBuddy extends StatelessWidget {
         GoRoute(
             path: '/login',
             builder: (context, state) {
-              var token = state.queryParams['resetToken'];
+              /*var token = state.queryParams['resetToken'];
               if (token != null && token.trim().isEmpty) {
                 token = null;
-              }
-              return LoginScreen(token);
+              }*/
+              return const LoginScreen(null);
             }),
         GoRoute(
             name: 'reporting_overview',
@@ -85,24 +88,22 @@ class StockBuddy extends StatelessWidget {
               );
             }),
       ],
-      redirect: (state) {
-        final loggedIn = supabase.auth.currentUser != null;
-
+      redirect: (context, state) async {
+        final loggingIn = state.subloc == '/login';
+        if (loggingIn) {
+          return null;
+        }
+        late final bool loggedIn;
+        try {
+          await context.read<StockBuddyBackend>().generateNewAuthToken();
+          loggedIn = true;
+        } catch (ex) {
+          loggedIn = false;
+        }
         if (loggedIn) {
           return null;
         }
-        final loggingIn = state.subloc == '/login';
-        String authResetToken = "";
-        if (loggingIn == false) {
-          if (state.location.contains('recovery')) {
-            final parts = state.location.split('&').map((e) => e.split('='));
-            authResetToken = parts
-                .firstWhere((element) => element.first == 'access_token')
-                .last;
-          }
-          return '/login?resetToken=$authResetToken';
-        }
-        return null;
+        return '/login';
       });
 
   @override

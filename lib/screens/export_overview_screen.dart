@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/export_record.dart';
 import 'package:stock_buddy/repository/export_repository.dart';
 import 'package:stock_buddy/widgets/export_overview_tile.dart';
@@ -14,7 +16,7 @@ class ExportOverviewScreen extends StatefulWidget {
 }
 
 class _ExportOverviewScreennState extends State<ExportOverviewScreen> {
-  final exportRepo = ExportRepositories();
+  late final ExportRepositories exportRepo;
   List<ExportRecord> _data = [];
   bool _intialLoadDone = false;
   late final Future<void> _initialFuture;
@@ -29,7 +31,9 @@ class _ExportOverviewScreennState extends State<ExportOverviewScreen> {
 
   @override
   void initState() {
+    exportRepo = ExportRepositories(context.read<StockBuddyBackend>());
     _initialFuture = _initialLoad();
+
     super.initState();
   }
 

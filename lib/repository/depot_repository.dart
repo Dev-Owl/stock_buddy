@@ -1,34 +1,46 @@
-import 'package:stock_buddy/backend.dart';
+import 'package:postgrest/postgrest.dart';
 import 'package:stock_buddy/models/database_depot.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
 import 'package:stock_buddy/utils/data_contract_helper.dart';
 import 'package:stock_buddy/utils/model_converter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DepotRepository extends BaseRepository {
+  DepotRepository(super.backend);
+
   Future<String?> getRepositoryIdByNumber(String number) async {
-    final request = await supabase
-        .from('depots')
-        .select('id')
-        .eq('number', number)
-        .withConverter((data) => data[0]['id'].toString())
-        .execute();
-    return request.data;
+    return await backend.runAuthenticatedRequest<String?>((client) async {
+      final request = await client
+          .from('depots')
+          .select('id')
+          .eq('number', number)
+          .withConverter((data) {
+        String? result;
+        try {
+          result = data[0]['id'].toString();
+          return result;
+        } catch (ex) {
+          return result;
+        }
+      });
+      return request;
+    });
   }
 
   Future<DataDepot> createNewDepot(String name, String number) async {
-    final response = await supabase
-        .from('depots')
-        .insert(removeDataContracFromMap(
-            DataDepot.forInsert(name, number).toJson()))
-        .withConverter(
-          (data) => ModelConverter.first(
-            data,
-            (singleElement) => DataDepot.fromJson(singleElement),
-          ),
-        )
-        .execute();
-    return handleNeverNullResponse<DataDepot>(response);
+    return await backend.runAuthenticatedRequest<DataDepot>((client) async {
+      final response = await client
+          .from('depots')
+          .insert(removeDataContracFromMap(
+              DataDepot.forInsert(name, number).toJson()))
+          .select()
+          .withConverter(
+            (data) => ModelConverter.first(
+              data,
+              (singleElement) => DataDepot.fromJson(singleElement),
+            ),
+          );
+      return response;
+    });
   }
 
   Future<List<DataDepot>> getAllDepots({String? filterById}) async {
@@ -38,36 +50,50 @@ class DepotRepository extends BaseRepository {
         'depotid': filterById,
       };
     }
-    final response = await supabase
-        .rpc(
-          'getdepotstats',
-          params: optionalFilter,
-        )
-        .withConverter((data) => ModelConverter.modelList(
-            data, (singleElement) => DataDepot.fromJson(singleElement)))
-        .execute();
-    return handleResponse(response, []);
+    return await backend
+        .runAuthenticatedRequest<List<DataDepot>>((client) async {
+      final response = await client
+          .rpc(
+            'getdepotstats',
+            params: optionalFilter,
+          )
+          .withConverter((data) => ModelConverter.modelList(
+              data, (singleElement) => DataDepot.fromJson(singleElement)));
+
+      return response;
+    });
   }
 
   Future<bool> deleteDepot(String id) async {
-    try {
-      final result = await supabase
-          .from('depots')
-          .delete(returning: ReturningOption.minimal)
-          .match({'id': id}).execute();
-      handleNoValueResponse(result);
+    //TODO test me
+    return await backend.runAuthenticatedRequest<bool>((client) async {
+      try {
+        final result =
+            await client.from('depots').delete().match({'id': id}).select(
+          'id',
+        );
+      } catch (ex) {
+        return false;
+      }
       return true;
-    } catch (ex) {
-      return false;
-    }
+    });
   }
 
   Future<void> updateDepotNotes(String id, String notes) async {
-    final result = await supabase
-        .from('depots')
-        .update({'notes': notes})
-        .eq('id', id)
-        .execute();
-    handleNoValueResponse(result);
+    //TODO test me
+    return await backend.runAuthenticatedRequest<void>((client) async {
+      final result = await client
+          .from('depots')
+          .update(
+            {'notes': notes},
+            options: const FetchOptions(
+              forceResponse: true,
+            ),
+          )
+          .eq('id', id)
+          .select();
+
+      handleNoValueResponse(result);
+    });
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/database_depot.dart';
 import 'package:stock_buddy/repository/depot_repository.dart';
 import 'package:stock_buddy/widgets/edit_notes.dart';
@@ -25,7 +27,7 @@ class _DepotDetailsMainState extends State<DepotDetailsMain> {
   }
 
   Future<void> _loadData({bool callSetState = true}) async {
-    final repo = DepotRepository();
+    final repo = DepotRepository(context.read<StockBuddyBackend>());
     data = (await repo.getAllDepots(filterById: widget.depotId)).first;
     textController.text = data?.notes ?? "";
     if (callSetState) {
@@ -75,7 +77,7 @@ Last export date: ${data!.lastExportTime} ''',
           trailing: TextButton(
             child: const Text('SAVE'),
             onPressed: () {
-              DepotRepository()
+              DepotRepository(context.read<StockBuddyBackend>())
                   .updateDepotNotes(widget.depotId, textController.text)
                   .then((value) => _loadData())
                   .then(
@@ -114,7 +116,7 @@ Last export date: ${data!.lastExportTime} ''',
                           ),
                           TextButton(
                             onPressed: () {
-                              DepotRepository()
+                              DepotRepository(context.read<StockBuddyBackend>())
                                   .deleteDepot(widget.depotId)
                                   .then(
                                 (value) {
@@ -131,7 +133,7 @@ Last export date: ${data!.lastExportTime} ''',
               },
               icon: const Icon(Icons.delete),
               style: ElevatedButton.styleFrom(
-                  primary: Colors.red //elevated btton background color
+                  backgroundColor: Colors.red //elevated btton background color
                   ),
             ),
           ),

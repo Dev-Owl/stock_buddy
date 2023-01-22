@@ -1,14 +1,16 @@
 import 'package:advanced_datatable/advanced_datatable_source.dart';
 import 'package:flutter/material.dart';
+import 'package:postgrest/postgrest.dart';
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/deopt_item.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
 import 'package:stock_buddy/repository/export_line_repository.dart';
 import 'package:stock_buddy/utils/model_converter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DepotLineRepository extends BaseRepository {
   final Map<String, int> _totalCache = {};
+
+  DepotLineRepository(super.backend);
 
   Future<bool> updateLineDetails(
     String id,
@@ -16,20 +18,17 @@ class DepotLineRepository extends BaseRepository {
     List<String> tags,
     bool active,
   ) async {
-    final result = await supabase
-        .from('depot_items')
-        .update(
-          {
-            'note': note,
-            'tags': tags,
-            'active': active,
-          },
-          returning: ReturningOption.minimal,
-        )
-        .eq('id', id)
-        .execute();
-    handleNoValueResponse(result);
-    return true;
+    return await backend.runAuthenticatedRequest<bool>((client) async {
+      await client.from('depot_items').update(
+        {
+          'note': note,
+          'tags': tags,
+          'active': active,
+        },
+        options: const FetchOptions(head: true),
+      ).eq('id', id);
+      return true;
+    });
   }
 
   Future<RemoteDataSourceDetails<DepotItem>> getPagedListOfItems({
@@ -51,51 +50,57 @@ class DepotLineRepository extends BaseRepository {
       6: 'last_win_loss_percent',
     };
     final rangeTo = offset + pageSize;
-    var result = await supabase
-        .rpc(
-          'depotlinetable',
-          params: {
-            'depotidfilter': depotId,
-            'filter': filter,
-            'activeonly': showActiveOnly,
-          },
-        )
-        .order(orderColumnMap[orderIndex]!, ascending: sortAsc)
-        .range(offset, rangeTo)
-        .withConverter((data) => ModelConverter.modelList(
-            data, (singleElement) => DepotItem.fromJson(singleElement)))
-        .execute();
-    handleNeverNullResponse(result);
-    if (_totalCache.containsKey(depotId) == false) {
-      final response = await supabase
-          .from("depot_items")
-          .select('id')
-          .eq("depot_id", depotId)
-          .execute(count: CountOption.exact);
-      handleNoValueResponse(response);
-      _totalCache[depotId] = response.count ?? 0;
-    }
-    return RemoteDataSourceDetails<DepotItem>(
-      _totalCache[depotId]!,
-      result.data!,
-      filteredRows: filter == null && showActiveOnly == false
-          ? null
-          : result.data!.length,
-    );
+    return await backend
+        .runAuthenticatedRequest<RemoteDataSourceDetails<DepotItem>>(
+            (client) async {
+      var result = await client
+          .rpc(
+            'depotlinetable',
+            params: {
+              'depotidfilter': depotId,
+              'filter': filter,
+              'activeonly': showActiveOnly,
+            },
+          )
+          .order(orderColumnMap[orderIndex]!, ascending: sortAsc)
+          .range(offset, rangeTo)
+          .withConverter((data) => ModelConverter.modelList(
+              data, (singleElement) => DepotItem.fromJson(singleElement)));
+
+      if (_totalCache.containsKey(depotId) == false) {
+        final response = await client
+            .from("depot_items")
+            .select('id', const FetchOptions(count: CountOption.exact))
+            .eq("depot_id", depotId);
+        handleNoValueResponse(response);
+        _totalCache[depotId] = response.count ?? 0;
+      }
+
+      return RemoteDataSourceDetails<DepotItem>(
+        _totalCache[depotId]!,
+        result,
+        filteredRows:
+            filter == null && showActiveOnly == false ? null : result.length,
+      );
+    });
   }
 }
 
 class DepotLineItemsDataSource extends AdvancedDataTableSource<DepotItem> {
   final GetRowCallback<DepotItem> getRowCallback;
   final String depotId;
-  final _repo = DepotLineRepository();
+  final StockBuddyBackend backend;
+  late final DepotLineRepository _repo;
   String? _lastSearchQuery;
   bool _showActiveOnly = true;
 
   DepotLineItemsDataSource({
     required this.depotId,
     required this.getRowCallback,
-  });
+    required this.backend,
+  }) {
+    _repo = DepotLineRepository(backend);
+  }
 
   @override
   Future<RemoteDataSourceDetails<DepotItem>> getNextPage(

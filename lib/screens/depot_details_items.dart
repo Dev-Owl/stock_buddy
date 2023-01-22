@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:advanced_datatable/datatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/deopt_item.dart';
 import 'package:stock_buddy/repository/depot_line_repository.dart';
 import 'package:stock_buddy/utils/data_cell_helper.dart';
@@ -30,6 +32,7 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
   void initState() {
     super.initState();
     _source = DepotLineItemsDataSource(
+      backend: context.read<StockBuddyBackend>(),
       depotId: widget.depotId,
       getRowCallback: (DepotItem row) {
         var note = row.note?.substring(0, min(row.note?.length ?? 0, 30)) ?? '';
@@ -64,7 +67,8 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
                     ],
                   );
                 });
-            await DepotLineRepository().updateLineDetails(
+            await DepotLineRepository(context.read<StockBuddyBackend>())
+                .updateLineDetails(
               row.id,
               note.text,
               lineItemUpdateController.getTags(),

@@ -1,11 +1,11 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/utils/response_handler.dart';
 import 'package:stock_buddy/utils/snackbar_extension.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? resetToken;
@@ -19,9 +19,20 @@ class _LoginScreenState extends State<LoginScreen>
     with DefautltResponseHandler {
   final _emailController = TextEditingController();
   final _pwController = TextEditingController();
+
+  final String prefUserName = "user_name";
+
   bool _isLoading = false;
-  bool _singUpCall = false;
+  final bool _singUpCall = false;
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    final lastUser = context.read<SharedPreferences>().getString(prefUserName);
+    _emailController.text = lastUser ?? '';
+  }
+
   @override
   Widget build(BuildContext context) {
     final resetMode = widget.resetToken != null;
@@ -124,6 +135,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   Future<void> _resetPw() async {
+    /*
     if (_emailController.text.isNotEmpty) {
       context.showSnackBar(message: 'Check your inbox for the used mail');
       final res = await supabase.auth.api.resetPasswordForEmail(
@@ -136,9 +148,11 @@ class _LoginScreenState extends State<LoginScreen>
     } else {
       context.showErrorSnackBar(message: 'Email required');
     }
+    */
   }
 
   Future<void> _register() async {
+    /*
     if (_formKey.currentState!.validate()) {
       _setLoading(true);
       _singUpCall = true;
@@ -154,10 +168,13 @@ class _LoginScreenState extends State<LoginScreen>
         },
       );
     }
+    */
   }
 
   Future<void> _signIn() async {
+    final backend = context.read<StockBuddyBackend>();
     if (widget.resetToken != null) {
+      /*
       final res = await supabase.auth.api.updateUser(
         widget.resetToken!,
         UserAttributes(password: _pwController.text),
@@ -174,37 +191,31 @@ class _LoginScreenState extends State<LoginScreen>
         }
       }
       return;
+      */
     }
 
     if (_formKey.currentState!.validate()) {
       _setLoading(true);
-      runRequest<GotrueSessionResponse>(
-        supabase.auth.signIn(
-          email: _emailController.text,
-          password: _pwController.text,
-        ),
+      context
+          .read<SharedPreferences>()
+          .setString(prefUserName, _emailController.text);
+      backend.userName = _emailController.text;
+      backend.userPassword = _pwController.text;
+      runRequest<String>(
+        backend.generateNewAuthToken(),
         _handleResponse,
         fail: (ex) {
           _setLoading(false);
+          context.showErrorSnackBar(
+              message: 'Unable to login, check your email and password');
         },
       );
     }
   }
 
   bool showForgotPasswordLink = false;
-  void _handleResponse(GotrueSessionResponse result) {
-    if (result.error == null) {
-      if (_singUpCall) {
-        _setLoading(false);
-        context.showSnackBar(
-            message: 'Please check your inbox, confirm and login');
-      } else {
-        GoRouter.of(context).go('/');
-      }
-    } else {
-      context.showErrorSnackBar(message: result.error!.message);
-      showForgotPasswordLink = true;
-      _setLoading(false);
-    }
+
+  void _handleResponse(String token) {
+    GoRouter.of(context).go('/');
   }
 }

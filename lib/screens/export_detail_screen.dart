@@ -3,6 +3,8 @@ import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/export_line_item.dart';
 import 'package:stock_buddy/repository/export_line_repository.dart';
 import 'package:stock_buddy/utils/data_cell_helper.dart';
@@ -28,6 +30,7 @@ class _ExportDetailScreenState extends State<ExportDetailScreen> {
   @override
   void initState() {
     _source = ExportLineDataAdapter(
+        backend: context.read<StockBuddyBackend>(),
         parentExportId: widget.exportId,
         getRowCallback: _buildRow,
         onNewPage: (page) {

@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/database_depot.dart';
 import 'package:stock_buddy/repository/depot_repository.dart';
@@ -24,12 +25,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   late final Future<void> _initialLoad;
   var _firstLoad = true;
-  final _repo = DepotRepository();
+  late final DepotRepository _repo;
 
   bool _dragging = false;
 
   @override
   void initState() {
+    _repo = DepotRepository(context.read<StockBuddyBackend>());
     super.initState();
     _initialLoad = _loadData();
   }
@@ -204,10 +206,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ListTile(
               title: const Text('Logout'),
               onTap: () async {
-                final resp = await supabase.auth.signOut();
-                if (mounted) {
-                  context.go('/login');
-                }
+                final backend = context.read<StockBuddyBackend>();
+                backend.removeSessionInfos();
+                context.go('/login');
               },
             ),
           ],
@@ -248,7 +249,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
 
     try {
-      await ExportRepositories().importNewData(
+      await ExportRepositories(context.read<StockBuddyBackend>()).importNewData(
         path,
         () {
           return showTextConfirm(context, 'New depot?',
