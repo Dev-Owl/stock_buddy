@@ -65,7 +65,6 @@ class DepotRepository extends BaseRepository {
   }
 
   Future<bool> deleteDepot(String id) async {
-    //TODO test me
     return await backend.runAuthenticatedRequest<bool>((client) async {
       try {
         final result =
@@ -80,7 +79,6 @@ class DepotRepository extends BaseRepository {
   }
 
   Future<void> updateDepotNotes(String id, String notes) async {
-    //TODO test me
     return await backend.runAuthenticatedRequest<void>((client) async {
       final result = await client
           .from('depots')

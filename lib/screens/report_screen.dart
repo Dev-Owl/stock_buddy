@@ -310,7 +310,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
                             setStateList((() => isinFilter.clear()));
                           }
                         },
-                        value: data!.lastItems.length == isinFilter.length,
+                        value: allAvalibleItems.length == isinFilter.length,
                       ),
                     ),
                     Expanded(

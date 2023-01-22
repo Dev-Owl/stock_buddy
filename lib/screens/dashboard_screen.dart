@@ -197,7 +197,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Text('Stock buddy'),
             ),
             ListTile(
-              title: const Text('Version 0.0.1'),
+              title: const Text('Version 0.0.2'),
               onTap: () {
                 // Update the state of the app.
                 // ...

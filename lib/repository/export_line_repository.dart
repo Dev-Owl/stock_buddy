@@ -58,7 +58,6 @@ class ExportLineRepository extends BaseRepository {
       //handleNeverNullResponse(response);
 
       if (_totalCache.containsKey(exportId) == false) {
-        //TODO Test me
         final response = await client
             .from("line_items")
             .select(

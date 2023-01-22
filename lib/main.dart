@@ -15,6 +15,7 @@ import 'package:stock_buddy/screens/report_screen.dart';
   Trigger on divdend table to update totla divdend on change
   Show dividends in chart view 
   Show dividends total in depot line itme screen
+  Create "state of the depot"
 */
 
 Future<void> main() async {
