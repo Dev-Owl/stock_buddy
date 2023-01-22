@@ -6,6 +6,7 @@ import 'package:csv/csv_settings_autodetection.dart';
 import 'package:intl/intl.dart';
 import 'package:stock_buddy/models/depot.dart';
 import 'package:stock_buddy/models/depot_line_item.dart';
+import 'package:stock_buddy/models/revenue_export_models.dart';
 
 const int colISIN = 0;
 const int colName = 1;
@@ -24,7 +25,77 @@ const int colWinLossPercent = 16;
 class ExportReader {
   ExportReader();
 
-  Future<Depot> parseFile(String pathToCSV) async {
+  Future<bool> isDepotExport(String pathToCSV) async {
+    assert(pathToCSV.isNotEmpty);
+    final exportFile = File(pathToCSV);
+    assert(await exportFile.exists());
+    final content =
+        await exportFile.readAsString(encoding: const Latin1Codec());
+    assert(content.isNotEmpty);
+    return content.startsWith('Depotbewertung');
+  }
+
+  Future<RevenueExport?> paresRevenueFile(String pathToCSV) async {
+    const int bookingData = 0;
+    const int client = 2;
+    const int bookingText = 3;
+    const int reference = 4;
+    const int saldo = 5;
+    const int amount = 7;
+    assert(pathToCSV.isNotEmpty);
+    final exportFile = File(pathToCSV);
+    assert(await exportFile.exists());
+    final content =
+        await exportFile.readAsString(encoding: const Latin1Codec());
+    assert(content.isNotEmpty);
+    //Setup csv config
+    const csvConfig = FirstOccurrenceSettingsDetector(
+      fieldDelimiters: [";"],
+    );
+    const csvReader = CsvToListConverter(
+      csvSettingsDetector: csvConfig,
+    );
+    final numberFormat = NumberFormat.decimalPattern('de');
+
+    //The export of the ING contains multiple CSV tables
+    final allLine = LineSplitter.split(content);
+    var cleanedFirstLine = allLine.first
+        .replaceAll(
+          RegExp("[^0-9.: ]"),
+          "",
+        )
+        .trim();
+    if (cleanedFirstLine.length > 16) {
+      cleanedFirstLine =
+          cleanedFirstLine.substring(cleanedFirstLine.length - 16);
+    }
+
+    final dateFormat = DateFormat("dd.MM.yyyy HH:mm");
+    final lineDateFormat = DateFormat("dd.MM.yyyy");
+    final DateTime exportDate = dateFormat.parse(cleanedFirstLine);
+    final accountNumber = allLine.skip(2).take(1).first.split(";").last;
+
+    final allLineItemsRaw =
+        allLine.skip(14).take(allLine.length - 15).toList().join("\n");
+    final allLineItemsCsv = csvReader.convert(allLineItemsRaw, eol: "\n");
+    final items = <RevenueItem>[];
+    for (var row in allLineItemsCsv) {
+      items.add(
+        RevenueItem(
+          lineDateFormat.parse(row[bookingData].toString()),
+          row[client].toString(),
+          row[bookingText].toString(),
+          row[reference].toString(),
+          numberFormat.parseDouble(row[saldo].toString()),
+          numberFormat.parseDouble(row[amount].toString()),
+          row.last.toString(),
+        ),
+      );
+    }
+    return RevenueExport(accountNumber, exportDate, items);
+  }
+
+  Future<Depot> parseDepotExportFile(String pathToCSV) async {
     assert(pathToCSV.isNotEmpty);
     final exportFile = File(pathToCSV);
     assert(await exportFile.exists());

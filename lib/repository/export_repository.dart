@@ -54,13 +54,42 @@ class ExportRepositories extends BaseRepository {
     });
   }
 
-  Future<ExportRecord?> importNewData(
+  Future<void> importNewData(
+    String pathToExportFile,
+    UserActionNeededCallback<String> missingRepoNameQuestion,
+    UserActionNeededCallback<String> selectRepoForDividends,
+  ) async {
+    final reader = ExportReader();
+
+    if (await reader.isDepotExport(pathToExportFile)) {
+      await _importDepotFile(
+        pathToExportFile,
+        missingRepoNameQuestion,
+      );
+    } else {
+      await _importRevenueFile(
+        pathToExportFile,
+        selectRepoForDividends,
+      );
+    }
+  }
+
+  Future<void> _importRevenueFile(
+    String pathToExportFile,
+    UserActionNeededCallback<String> selectRepoForDividends,
+  ) async {
+    final reader = ExportReader();
+    final revenue = await reader.paresRevenueFile(pathToExportFile);
+    final selectedDepot = await selectRepoForDividends();
+    //TODO Book dividends to the depot
+  }
+
+  Future<ExportRecord?> _importDepotFile(
     String pathToExportFile,
     UserActionNeededCallback<String> missingRepoNameQuestion,
   ) async {
     final reader = ExportReader();
-
-    final result = await reader.parseFile(pathToExportFile);
+    final result = await reader.parseDepotExportFile(pathToExportFile);
     final depotRepo = DepotRepository(backend);
     var depoID = await depotRepo.getRepositoryIdByNumber(result.depotNumber);
 

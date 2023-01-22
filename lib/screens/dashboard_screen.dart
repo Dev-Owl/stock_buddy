@@ -257,6 +257,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               addtionalText:
                   'Looks like this is a new depot, please provide a name');
         },
+        () async {
+          return "";
+        },
       );
 
       if (!mounted) return;

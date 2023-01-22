@@ -36,7 +36,7 @@ class StockBuddyBackend {
 
   Future<String> generateNewAuthToken() async {
     if (tokenEndOfLife == null ||
-        tokenEndOfLife!.isAfter(DateTime.now().toUtc())) {
+        tokenEndOfLife!.isBefore(DateTime.now().toUtc())) {
       // Auth needed
       if (userName == null || userPassword == null) {
         throw "User name or password is missing";
@@ -50,7 +50,6 @@ class StockBuddyBackend {
       tokenEndOfLife = DateTime.now().toUtc().add(
             const Duration(
               minutes: 4,
-              seconds: 50,
             ),
           );
       client.auth(token);
