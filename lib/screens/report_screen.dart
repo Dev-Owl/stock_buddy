@@ -10,6 +10,7 @@ import 'package:stock_buddy/repository/reporting_repository.dart';
 import 'package:stock_buddy/utils/text_helper.dart';
 import 'package:stock_buddy/widgets/current_invested_chart.dart';
 import 'package:stock_buddy/widgets/current_value_chart.dart';
+import 'package:stock_buddy/widgets/dividends_earned_chart.dart';
 import 'package:stock_buddy/widgets/percentage_pie_chart.dart';
 
 class ReportingScreen extends StatefulWidget {
@@ -205,6 +206,18 @@ class _ReportingScreenState extends State<ReportingScreen> {
         color: Colors.grey[600],
         child: PercentagePieChart(items: data!.lastItems)));
     final crossAxisCount = min(4, size.width ~/ 350);
+
+    children.add(
+      Container(
+        height: 350,
+        width: 350,
+        color: Colors.grey[600],
+        child: DividendsEarendChart(
+          chartData: data!.dividends,
+        ),
+      ),
+    );
+
     if (desktopMode) {
       return GridView.count(
         padding: const EdgeInsets.all(5),
@@ -228,7 +241,7 @@ class _ReportingScreenState extends State<ReportingScreen> {
             children: [
               Text(
                 'Crunching the numbers',
-                style: Theme.of(context).textTheme.headline5,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
               const Padding(
                 padding: EdgeInsets.only(

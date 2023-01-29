@@ -1,3 +1,4 @@
+import 'package:stock_buddy/models/dividend_item.dart';
 import 'package:stock_buddy/models/export_line_item.dart';
 import 'package:stock_buddy/models/report_chart_model.dart';
 import 'package:stock_buddy/models/report_screen_model.dart';
@@ -50,6 +51,21 @@ class ReportingRepository extends BaseRepository {
       final lastLineItems =
           await lastLineItemsQueryCompleted.limit(1).withConverter(_convert);
 
+      var dividendsQuery = client
+          .from('dividends')
+          .select("*,depot_items!inner(isin)")
+          .eq('depot_id', depotID);
+
+      if (isinFilterPresent) {
+        dividendsQuery = dividendsQuery.in_('depot_items.isin', isinFilter);
+      }
+      final dividendItems = await dividendsQuery.withConverter(
+        (data) => ModelConverter.modelList(
+          data,
+          (singleElement) => DividendItem.fromJson(singleElement),
+        ),
+      );
+
       return ReportScreenModel(
         chartingData,
         positions,
@@ -58,6 +74,7 @@ class ReportingRepository extends BaseRepository {
             ((a, b) =>
                 a.currentWindLossPercent.compareTo(b.currentWindLossPercent)),
           ),
+        dividendItems,
       );
     });
   }
