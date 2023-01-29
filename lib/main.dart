@@ -11,7 +11,6 @@ import 'package:stock_buddy/screens/report_screen.dart';
 
 /*
   TODO:
-  - Show dividends in chart view (new chart barchart?)
   - Show dividends total in depot line itme screen
   - Create "state of the depot" report
 */
