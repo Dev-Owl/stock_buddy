@@ -1,13 +1,19 @@
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:postgrest/postgrest.dart';
 import 'package:stock_buddy/models/create_depot_item.dart';
 import 'package:stock_buddy/models/create_export_record.dart';
 import 'package:stock_buddy/models/deopt_item.dart';
+import 'package:stock_buddy/models/dividend_item.dart';
 import 'package:stock_buddy/models/export_record.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
+import 'package:stock_buddy/repository/depot_line_repository.dart';
 import 'package:stock_buddy/repository/depot_repository.dart';
+import 'package:stock_buddy/repository/dividend_repoistory.dart';
 import 'package:stock_buddy/utils/duplicate_export_exception.dart';
 import 'package:stock_buddy/utils/ing_diba_export_reader.dart';
 import 'package:stock_buddy/utils/model_converter.dart';
+import 'package:uuid/uuid.dart';
 
 typedef UserActionNeededCallback<T> = Future<T> Function();
 
@@ -54,7 +60,7 @@ class ExportRepositories extends BaseRepository {
     });
   }
 
-  Future<void> importNewData(
+  Future<int> importNewData(
     String pathToExportFile,
     UserActionNeededCallback<String> missingRepoNameQuestion,
     UserActionNeededCallback<String> selectRepoForDividends,
@@ -62,26 +68,84 @@ class ExportRepositories extends BaseRepository {
     final reader = ExportReader();
 
     if (await reader.isDepotExport(pathToExportFile)) {
-      await _importDepotFile(
+      final result = await _importDepotFile(
         pathToExportFile,
         missingRepoNameQuestion,
       );
+      return result == null ? 0 : 1;
     } else {
-      await _importRevenueFile(
+      return await _importRevenueFile(
         pathToExportFile,
         selectRepoForDividends,
       );
     }
   }
 
-  Future<void> _importRevenueFile(
+  Future<int> _importRevenueFile(
     String pathToExportFile,
     UserActionNeededCallback<String> selectRepoForDividends,
   ) async {
     final reader = ExportReader();
     final revenue = await reader.paresRevenueFile(pathToExportFile);
+    if (revenue == null) return 0;
     final selectedDepot = await selectRepoForDividends();
-    //TODO Book dividends to the depot
+    if (selectedDepot == "") return 0;
+    //Map items and create lines for the dividends
+    final depotLineRepo = DepotLineRepository(backend);
+    final allLineItems = await depotLineRepo.allItemsByDepotId(selectedDepot);
+    //Get min&max date for revenue
+    revenue.items.sort(
+      (a, b) => a.bookingDate.compareTo(b.bookingDate),
+    );
+    final oldestRecord = revenue.items.first;
+    final newestRecord = revenue.items.last;
+    //Get all dividend records in the range
+    final dividendRepo = DividendRepository(backend);
+    final allKnownRecords = await dividendRepo.getAllDividendsBetween(
+        selectedDepot, oldestRecord.bookingDate, newestRecord.bookingDate);
+    final addList = <DividendItem>[];
+    final ownerId =
+        await backend.runAuthenticatedRequest<String>((client) async {
+      final result = await client.rpc("current_userid").select();
+      return result.toString();
+    });
+    for (final line in revenue.items) {
+      final refText = line.referenceText.toLowerCase();
+      if (refText.contains('dividende') && refText.contains('isin')) {
+        final isin = line.referenceText
+            .substring(refText.indexOf('isin') + 4)
+            .trim()
+            .substring(0, 12);
+        debugPrint(isin);
+        final depotLineItem = allLineItems
+            .where(
+                (element) => element.isin.toLowerCase() == isin.toLowerCase())
+            .firstOrNull;
+        if (depotLineItem == null) continue;
+        // Check if depotline and date already exists, if not import
+        if (allKnownRecords.any((element) =>
+            element.depotItemId == depotLineItem.id &&
+            element.bookedAt == line.bookingDate &&
+            element.amount == line.amount)) continue;
+
+        // We know its part of the depot, and not yet imported
+        addList.add(
+          DividendItem(
+            DateTime.now(),
+            const Uuid().v4(),
+            ownerId,
+            selectedDepot,
+            depotLineItem.id,
+            line.amount,
+            line.bookingDate,
+          ),
+        );
+      }
+    }
+    if (addList.isNotEmpty) {
+      await dividendRepo.import(addList);
+    }
+    return addList.length;
   }
 
   Future<ExportRecord?> _importDepotFile(

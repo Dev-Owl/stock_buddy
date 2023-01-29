@@ -7,7 +7,7 @@ import Foundation
 
 import app_links
 import desktop_drop
-import path_provider_macos
+import path_provider_foundation
 import shared_preferences_foundation
 import url_launcher_macos
 

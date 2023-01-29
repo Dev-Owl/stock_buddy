@@ -464,9 +464,26 @@ GRANT EXECUTE ON FUNCTION public.updatedepotitems(character varying[]) TO authen
 
 GRANT EXECUTE ON FUNCTION public.updatedepotitems(character varying[]) TO postgres;
 
+CREATE OR REPLACE FUNCTION set_dividends_for_item()
+RETURNS TRIGGER
+AS $$
+BEGIN
+    UPDATE public.depot_items
+    SET dividends = v.totalSum
+	FROM (SELECT 
+		  	depot_item_id,
+		  	sum(amount) as totalSum 
+		   FROM public.dividends 
+		   GROUP BY public.dividends.depot_item_id) v
+    WHERE id = v.depot_item_id;
+	return null;
+END;
+$$ LANGUAGE plpgsql;
 
 
-
+CREATE TRIGGER update_divideds AFTER INSERT OR UPDATE OR DELETE ON public.dividends 
+FOR EACH STATEMENT
+EXECUTE FUNCTION public.set_dividends_for_item();
 
 
 

@@ -11,6 +11,7 @@ import 'package:stock_buddy/repository/export_repository.dart';
 import 'package:stock_buddy/utils/duplicate_export_exception.dart';
 import 'package:stock_buddy/utils/snackbar_extension.dart';
 import 'package:stock_buddy/widgets/depot_overview_tile.dart';
+import 'package:stock_buddy/widgets/dropdown_confirm.dart';
 import 'package:stock_buddy/widgets/text_confirm.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -249,7 +250,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         });
 
     try {
-      await ExportRepositories(context.read<StockBuddyBackend>()).importNewData(
+      final result = await ExportRepositories(context.read<StockBuddyBackend>())
+          .importNewData(
         path,
         () {
           return showTextConfirm(context, 'New depot?',
@@ -258,7 +260,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   'Looks like this is a new depot, please provide a name');
         },
         () async {
-          return "";
+          final value = await showDropdownConfirm<String>(
+              context, _getDepotNameDropdown(), 'Select depot for dividends');
+          return value ?? "";
         },
       );
 
@@ -267,6 +271,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.of(context).pop();
       }
       _loadData();
+      context.showSnackBar(
+          message: "Added $result new records based on the export file");
     } on DuplicateExportException {
       context.showErrorSnackBar(message: 'This export is already imported');
       if (Navigator.of(context).canPop()) {
@@ -279,5 +285,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.of(context).pop();
       }
     }
+  }
+
+  Future<List<DropdownMenuItem<String>>> _getDepotNameDropdown() async {
+    final repo = DepotRepository(context.read<StockBuddyBackend>());
+    final repos = await repo.getAllDepots();
+    return repos
+        .map((e) => DropdownMenuItem<String>(
+              value: e.id,
+              child: Text(e.name),
+            ))
+        .toList();
   }
 }

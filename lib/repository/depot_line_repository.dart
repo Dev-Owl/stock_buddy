@@ -31,6 +31,17 @@ class DepotLineRepository extends BaseRepository {
     });
   }
 
+  Future<List<DepotItem>> allItemsByDepotId(String depotId) {
+    return backend.runAuthenticatedRequest<List<DepotItem>>((client) async {
+      return await client
+          .from('depot_items')
+          .select()
+          .eq('depot_id', depotId)
+          .withConverter((data) => ModelConverter.modelList(
+              data, (singleElement) => DepotItem.fromJson(singleElement)));
+    });
+  }
+
   Future<RemoteDataSourceDetails<DepotItem>> getPagedListOfItems({
     required String depotId,
     String? filter,

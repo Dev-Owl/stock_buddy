@@ -41,6 +41,8 @@ class StockBuddyBackend {
       if (userName == null || userPassword == null) {
         throw "User name or password is missing";
       }
+      // Remove the old JWT
+      client.headers.remove("Authorization");
 
       final token = await client.rpc("authenticate", params: {
         "username": userName,

@@ -11,11 +11,9 @@ import 'package:stock_buddy/screens/report_screen.dart';
 
 /*
   TODO:
-  Add option to book dividends to a position (via import file?)
-  Trigger on divdend table to update totla divdend on change
-  Show dividends in chart view 
-  Show dividends total in depot line itme screen
-  Create "state of the depot"
+  - Show dividends in chart view (new chart barchart?)
+  - Show dividends total in depot line itme screen
+  - Create "state of the depot" report
 */
 
 Future<void> main() async {
