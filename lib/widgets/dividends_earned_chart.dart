@@ -5,6 +5,7 @@ import 'package:charts_flutter_new/flutter.dart' as charts;
 
 class DividendsEarendChart extends StatelessWidget {
   final List<DividendItem> chartData;
+
   const DividendsEarendChart({required this.chartData, Key? key})
       : super(key: key);
 
@@ -44,7 +45,7 @@ class DividendsEarendChart extends StatelessWidget {
       animate: true,
       behaviors: [
         charts.ChartTitle(
-          'Dividends by month',
+          'Dividends by month total ${chartData.fold<double>(0, (previousValue, element) => previousValue + element.amount).toStringAsFixed(2)}€',
           behaviorPosition: charts.BehaviorPosition.top,
           titleOutsideJustification: charts.OutsideJustification.middle,
           titleStyleSpec: const charts.TextStyleSpec(
