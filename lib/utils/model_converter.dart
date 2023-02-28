@@ -20,4 +20,13 @@ class ModelConverter {
       return converter(input);
     }
   }
+
+  static T direct<T>(dynamic input, {T Function()? orElse}) {
+    if (input is T) {
+      return input;
+    } else if (orElse != null) {
+      return orElse();
+    }
+    throw "Unable to map $input to the requested type ${T.runtimeType.toString()}";
+  }
 }

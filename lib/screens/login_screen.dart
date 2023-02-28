@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen>
                       children: [
                         Text(
                           resetMode ? 'Reset your password' : 'Please login',
-                          style: Theme.of(context).textTheme.headline5,
+                          style: Theme.of(context).textTheme.headlineSmall,
                         ),
                         const SizedBox(height: 18),
                         if (resetMode == false)
@@ -201,6 +201,13 @@ class _LoginScreenState extends State<LoginScreen>
           .setString(prefUserName, _emailController.text);
       backend.userName = _emailController.text;
       backend.userPassword = _pwController.text;
+      /* 
+      Example permission usage:
+      await runRequest<bool>(backend.userHasPermission("Can delete depot"),
+          (result) {
+        debugPrint('User can delete depot: $result');
+      });
+      */
       runRequest<String>(
         backend.generateNewAuthToken(),
         _handleResponse,

@@ -65,6 +65,20 @@ class StockBuddyBackend {
     return client;
   }
 
+  Future<bool> userHasPermission(String permissionRule) {
+    return runAuthenticatedRequest<bool>(
+      (client) {
+        return client.rpc("current_user_has_permission",
+            params: {"permission_rule": permissionRule}).withConverter(
+          (data) => ModelConverter.direct<bool>(
+            data,
+            orElse: () => false,
+          ),
+        );
+      },
+    );
+  }
+
   Future<T> runAuthenticatedRequest<T>(
       Future<T> Function(PostgrestClient client) action) async {
     try {
