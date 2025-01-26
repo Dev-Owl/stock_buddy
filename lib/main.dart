@@ -9,9 +9,15 @@ import 'package:stock_buddy/screens/export_detail_screen.dart';
 import 'package:stock_buddy/screens/report_screen.dart';
 
 /*
-  TODO:
+  TODO: MIGRATION
+  - Migrate depot import to Couchdb
+  - Migrate divident import to Couchdb
+  - Migration plan for all other screens
+  
+  TODO: FEATURES
   - Show dividends total in depot line itme screen
   - Create "state of the depot" report
+  
 */
 
 Future<void> main() async {
