@@ -84,17 +84,19 @@ Last export date: ${data!.lastExportTime} ''',
             onPressed: () {
               DepotRepository(context.read<StockBuddyBackend>())
                   .updateDepotNotes(widget.depotId, textController.text)
-                  .then((value) => _loadData())
-                  .then(
-                    (value) => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Note saved',
-                        ),
-                        backgroundColor: Colors.green,
+                  .then((value) {
+                data!.rev = value;
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Note saved',
                       ),
+                      backgroundColor: Colors.green,
                     ),
                   );
+                }
+              });
             },
           ),
         ),
