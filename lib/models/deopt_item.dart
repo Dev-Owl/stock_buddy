@@ -25,6 +25,7 @@ class DepotItem extends BaseDatabaseModel {
   DepotItem(
     super.createdAt,
     super.id,
+    super.rev,
     this.tags,
     this.isin,
     this.depotId,

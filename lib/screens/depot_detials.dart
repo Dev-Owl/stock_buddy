@@ -15,7 +15,7 @@ import 'package:stock_buddy/screens/report_screen.dart';
 
 class DepotDetailPage extends StatefulWidget {
   final String depotId;
-  const DepotDetailPage({required this.depotId, Key? key}) : super(key: key);
+  const DepotDetailPage({required this.depotId, super.key});
 
   @override
   State<DepotDetailPage> createState() => _DepotDetailPageState();

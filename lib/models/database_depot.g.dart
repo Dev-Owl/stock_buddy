@@ -11,6 +11,7 @@ DataDepot _$DataDepotFromJson(Map<String, dynamic> json) => DataDepot(
       json['number'] as String,
       DateTime.parse(json['createdAt'] as String),
       json['_id'] as String,
+      json['_rev'] as String?,
       (json['totalExports'] as num).toInt(),
       (json['totalGainLoss'] as num).toDouble(),
       (json['totalGainLossPercent'] as num).toDouble(),
@@ -23,6 +24,7 @@ DataDepot _$DataDepotFromJson(Map<String, dynamic> json) => DataDepot(
 Map<String, dynamic> _$DataDepotToJson(DataDepot instance) => <String, dynamic>{
       'createdAt': instance.createdAt.toIso8601String(),
       '_id': instance.id,
+      if (instance.rev case final value?) '_rev': value,
       'notes': instance.notes,
       'name': instance.name,
       'number': instance.number,

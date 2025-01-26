@@ -9,6 +9,7 @@ part of 'deopt_item.dart';
 DepotItem _$DepotItemFromJson(Map<String, dynamic> json) => DepotItem(
       DateTime.parse(json['createdAt'] as String),
       json['_id'] as String,
+      json['_rev'] as String?,
       (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
       json['isin'] as String,
       json['depot_id'] as String,
@@ -23,6 +24,7 @@ DepotItem _$DepotItemFromJson(Map<String, dynamic> json) => DepotItem(
 Map<String, dynamic> _$DepotItemToJson(DepotItem instance) => <String, dynamic>{
       'createdAt': instance.createdAt.toIso8601String(),
       '_id': instance.id,
+      if (instance.rev case final value?) '_rev': value,
       'tags': instance.tags,
       'isin': instance.isin,
       'note': instance.note,

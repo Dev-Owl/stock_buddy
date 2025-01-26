@@ -7,7 +7,11 @@ import 'package:stock_buddy/widgets/edit_notes.dart';
 
 class DepotDetailsMain extends StatefulWidget {
   final String depotId;
-  const DepotDetailsMain({required this.depotId, Key? key}) : super(key: key);
+
+  const DepotDetailsMain({
+    required this.depotId,
+    super.key,
+  });
 
   @override
   State<DepotDetailsMain> createState() => _DepotDetailsMainState();
@@ -115,10 +119,12 @@ Last export date: ${data!.lastExportTime} ''',
                             child: const Text('CANCEL'),
                           ),
                           TextButton(
-                            onPressed: () {
-                              DepotRepository(context.read<StockBuddyBackend>())
-                                  .deleteDepot(widget.depotId)
-                                  .then(
+                            onPressed: () async {
+                              final repo = DepotRepository(
+                                  context.read<StockBuddyBackend>());
+                              final currentRev =
+                                  await repo.getCurrentRevById(widget.depotId);
+                              repo.deleteDepot(widget.depotId, currentRev).then(
                                 (value) {
                                   Navigator.pop(c);
                                   Navigator.pop(context, true);

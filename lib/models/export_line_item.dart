@@ -62,8 +62,13 @@ class ExportLineItem extends BaseDatabaseModel {
     this.currentWindLossPercent,
     DateTime createdAt,
     String id,
+    String? rev,
     this.tags,
-  ) : super(createdAt, id);
+  ) : super(
+          createdAt,
+          id,
+          rev,
+        );
 
   factory ExportLineItem.fromJson(Map<String, dynamic> json) =>
       _$ExportLineItemFromJson(json);

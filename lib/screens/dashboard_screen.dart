@@ -24,7 +24,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<DataDepot> _data = [];
 
-  late final Future<void> _initialLoad;
+  late Future<void> _initialLoad;
   late final DepotRepository _repo;
   var _firstLoad = true;
   var _dragging = false;
@@ -110,8 +110,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 Widget continueButton = TextButton(
                                   child: const Text("Delete"),
                                   onPressed: () async {
-                                    await _repo.deleteDepot(currentRow.id);
-                                    if (!mounted) return;
+                                    final rev = await _repo
+                                        .getCurrentRevById(currentRow.id);
+                                    await _repo.deleteDepot(currentRow.id, rev);
+                                    if (!context.mounted) return;
                                     Navigator.of(context).pop();
                                     _loadData();
                                   },
@@ -206,6 +208,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _pickExportFile() async {
+    await _repo.updateDepotNotes(
+        "depot:2e985ba3-104d-4934-a139-0b5e0204fc49", "TESTING");
+
     final result = await FilePicker.platform.pickFiles();
     if (result != null && result.files.single.path != null) {
       _addNewExport(result.files.single.path!);

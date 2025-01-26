@@ -29,8 +29,13 @@ class ExportRecord extends BaseDatabaseModel {
       this.winLossAmount,
       this.winLossPercent,
       this.depotId,
+      String rev,
       this.totalValue)
-      : super(createdAt, id);
+      : super(
+          createdAt,
+          id,
+          rev,
+        );
 
   factory ExportRecord.fromJson(Map<String, dynamic> json) =>
       _$ExportRecordFromJson(json);

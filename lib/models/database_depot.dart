@@ -7,25 +7,26 @@ part 'database_depot.g.dart';
 class DataDepot extends BaseDatabaseModel {
   static toNull(_) => null;
 
-  final String? notes;
-  final String name;
-  final String number;
-  final int totalExports; //total amount of exports
-  final double totalGainLoss; //from last export sum
-  final double totalGainLossPercent;
-  final DateTime? lastExportTime;
+  String? notes;
+  String name;
+  String number;
+  int totalExports; //total amount of exports
+  double totalGainLoss; //from last export sum
+  double totalGainLossPercent;
+  DateTime? lastExportTime;
 
   DataDepot(
     this.name,
     this.number,
     DateTime createdAt,
     String id,
+    String? rev,
     this.totalExports,
     this.totalGainLoss,
     this.totalGainLossPercent,
     this.notes,
     this.lastExportTime,
-  ) : super(createdAt, id);
+  ) : super(createdAt, id, rev);
 
   factory DataDepot.fromJson(Map<String, dynamic> json) =>
       _$DataDepotFromJson(json);

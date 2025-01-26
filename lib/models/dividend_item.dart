@@ -13,8 +13,15 @@ class DividendItem extends BaseDatabaseModel {
   @JsonKey(name: 'booked_at')
   final DateTime bookedAt;
 
-  DividendItem(super.createdAt, super.id, this.depotId, this.depotItemId,
-      this.amount, this.bookedAt);
+  DividendItem(
+    super.createdAt,
+    super.id,
+    super.rev,
+    this.depotId,
+    this.depotItemId,
+    this.amount,
+    this.bookedAt,
+  );
 
   factory DividendItem.fromJson(Map<String, dynamic> json) =>
       _$DividendItemFromJson(json);

@@ -15,6 +15,7 @@ ExportRecord _$ExportRecordFromJson(Map<String, dynamic> json) => ExportRecord(
       (json['win_loss_amount'] as num).toDouble(),
       (json['win_loss_percent'] as num).toDouble(),
       json['depot_id'] as String,
+      json['_rev'] as String,
       (json['total_spent'] as num).toDouble(),
     );
 
@@ -22,6 +23,7 @@ Map<String, dynamic> _$ExportRecordToJson(ExportRecord instance) =>
     <String, dynamic>{
       'createdAt': instance.createdAt.toIso8601String(),
       '_id': instance.id,
+      if (instance.rev case final value?) '_rev': value,
       'export_time': instance.exportDate.toIso8601String(),
       'name': instance.customerName,
       'number': instance.depotNumber,

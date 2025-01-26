@@ -24,6 +24,7 @@ ExportLineItem _$ExportLineItemFromJson(Map<String, dynamic> json) =>
       (json['current_win_loss_percent'] as num).toDouble(),
       DateTime.parse(json['createdAt'] as String),
       json['_id'] as String,
+      json['_rev'] as String?,
       (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
     );
 
@@ -31,6 +32,7 @@ Map<String, dynamic> _$ExportLineItemToJson(ExportLineItem instance) =>
     <String, dynamic>{
       'createdAt': instance.createdAt.toIso8601String(),
       '_id': instance.id,
+      if (instance.rev case final value?) '_rev': value,
       'export_id': instance.exportId,
       'isin': instance.isin,
       'name': instance.name,

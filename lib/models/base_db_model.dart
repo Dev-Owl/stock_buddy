@@ -5,5 +5,11 @@ abstract class BaseDatabaseModel {
   @JsonKey(name: '_id')
   final String id;
 
-  BaseDatabaseModel(this.createdAt, this.id);
+  @JsonKey(
+    name: '_rev',
+    includeIfNull: false,
+  )
+  String? rev;
+
+  BaseDatabaseModel(this.createdAt, this.id, this.rev);
 }
