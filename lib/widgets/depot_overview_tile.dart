@@ -11,8 +11,8 @@ class DepotOverviewTile extends StatelessWidget {
   const DepotOverviewTile({
     required this.row,
     required this.onDelteCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,7 @@ class DepotOverviewTile extends StatelessWidget {
             onPressed: (_) {
               context.pushNamed(
                 'reporting_overview',
-                params: {
+                pathParameters: {
                   'depotNumber': row.id,
                 },
               );
@@ -94,7 +94,7 @@ class DepotOverviewTile extends StatelessWidget {
           //Go router doesnt allow to await this, so dirty hack mode activated
           context.goNamed(
             'depot_details',
-            params: {
+            pathParameters: {
               'depotNumber': row.id,
             },
           );

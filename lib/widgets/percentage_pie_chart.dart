@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:stock_buddy/models/export_line_item.dart';
-import 'package:charts_flutter_new/flutter.dart' as charts;
+import 'package:community_charts_flutter/community_charts_flutter.dart'
+    as charts;
 
 class PercentagePieChart extends StatelessWidget {
   final List<ExportLineItem> items;
 
-  const PercentagePieChart({required this.items, Key? key}) : super(key: key);
+  const PercentagePieChart({required this.items, super.key});
 
   @override
   Widget build(BuildContext context) {

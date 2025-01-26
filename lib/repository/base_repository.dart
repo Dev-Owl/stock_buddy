@@ -1,5 +1,5 @@
+import 'package:postgrest/postgrest.dart';
 import 'package:stock_buddy/backend.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class BaseRepository {
   final StockBuddyBackend backend;
@@ -19,10 +19,6 @@ abstract class BaseRepository {
   }
 
   T handleResponse<T>(PostgrestResponse<T> response, T defaultValue) {
-    if (response.status >= 400 && response.status != 406) {
-      throw response.data ?? 'No error information in response';
-    } else {
-      return response.data ?? defaultValue;
-    }
+    return response.data ?? defaultValue;
   }
 }

@@ -32,7 +32,7 @@ class ExportReader {
     final content =
         await exportFile.readAsString(encoding: const Latin1Codec());
     assert(content.isNotEmpty);
-    return content.startsWith('Depotbewertung');
+    return content.startsWith('Depotübersicht');
   }
 
   Future<RevenueExport?> paresRevenueFile(String pathToCSV) async {

@@ -13,8 +13,7 @@ class ExportDetailScreen extends StatefulWidget {
   final String exportId;
   final String depotId;
   const ExportDetailScreen(
-      {required this.exportId, required this.depotId, Key? key})
-      : super(key: key);
+      {required this.exportId, required this.depotId, super.key});
 
   @override
   State<ExportDetailScreen> createState() => _ExportDetailScreenState();
@@ -238,10 +237,6 @@ class _ExportDetailScreenState extends State<ExportDetailScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Badge(
-          toAnimate: true,
-          shape: BadgeShape.circle,
-          badgeColor: Colors.red,
-          borderRadius: BorderRadius.circular(8),
           showBadge: badgeContentForActionButton.isNotEmpty,
           badgeContent: Text(
             badgeContentForActionButton,
@@ -253,7 +248,7 @@ class _ExportDetailScreenState extends State<ExportDetailScreen> {
         onPressed: () {
           context.pushNamed(
             'reporting_overview',
-            params: {
+            pathParameters: {
               'depotNumber': widget.depotId,
             },
             extra: _source.selectedRows.map((e) => e.isin).toList(),

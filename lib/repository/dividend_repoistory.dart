@@ -7,6 +7,8 @@ class DividendRepository extends BaseRepository {
 
   Future<List<DividendItem>> getAllDividendsBetween(
       String depotId, DateTime start, DateTime end) async {
+    throw UnimplementedError();
+    /*
     return await backend
         .runAuthenticatedRequest<List<DividendItem>>((client) async {
       return await client
@@ -17,13 +19,15 @@ class DividendRepository extends BaseRepository {
           .lte('booked_at', end)
           .withConverter((data) => ModelConverter.modelList(
               data, (singleElement) => DividendItem.fromJson(singleElement)));
-    });
+    });*/
   }
 
   Future<void> import(List<DividendItem> addList) async {
     if (addList.isEmpty) return;
+    throw UnimplementedError();
+    /*
     await backend.runAuthenticatedRequest((clinet) async {
       await clinet.from('dividends').insert(addList);
-    });
+    });*/
   }
 }

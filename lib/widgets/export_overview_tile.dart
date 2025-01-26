@@ -12,8 +12,8 @@ class ExportOverviewListTile extends StatelessWidget {
   ExportOverviewListTile({
     required this.data,
     required this.onDelteCallback,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +53,7 @@ class ExportOverviewListTile extends StatelessWidget {
         onTap: () {
           context.goNamed(
             'export_details',
-            params: {
+            pathParameters: {
               'exportId': data.id,
               'depotNumber': data.depotId,
             },

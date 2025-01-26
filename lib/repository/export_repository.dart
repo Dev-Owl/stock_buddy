@@ -21,6 +21,8 @@ class ExportRepositories extends BaseRepository {
   ExportRepositories(super.backend);
 
   Future<List<ExportRecord>> getAllExportsForDept(String depotId) async {
+    throw UnimplementedError();
+    /*
     return await backend
         .runAuthenticatedRequest<List<ExportRecord>>((client) async {
       final response = await client
@@ -41,23 +43,24 @@ class ExportRepositories extends BaseRepository {
           );
       return response;
     });
+    */
   }
 
   Future<bool> doesExportForDepotExists(
       String depotId, DateTime exportTime) async {
+    throw UnimplementedError();
+    /*
     return await backend.runAuthenticatedRequest<bool>((client) async {
       final response = await client
           .from('depot_exports')
-          .select(
-              'id',
-              const FetchOptions(
-                count: CountOption.exact,
-              ))
+          .select('id')
           .eq('depot_id', depotId)
-          .eq('export_time', exportTime);
+          .eq('export_time', exportTime)
+          .count(CountOption.exact);
       handleNoValueResponse(response);
       return (response.count ?? 0) == 1;
     });
+    */
   }
 
   Future<int> importNewData(
@@ -104,11 +107,13 @@ class ExportRepositories extends BaseRepository {
     final allKnownRecords = await dividendRepo.getAllDividendsBetween(
         selectedDepot, oldestRecord.bookingDate, newestRecord.bookingDate);
     final addList = <DividendItem>[];
-    final ownerId =
+    final ownerId = ""; // TODO FIX
+    /*
         await backend.runAuthenticatedRequest<String>((client) async {
       final result = await client.rpc("current_userid").select();
       return result.toString();
     });
+    */
     for (final line in revenue.items) {
       final refText = line.referenceText.toLowerCase();
       if (refText.contains('dividende') && refText.contains('isin')) {
@@ -129,7 +134,8 @@ class ExportRepositories extends BaseRepository {
             element.amount == line.amount)) continue;
 
         // We know its part of the depot, and not yet imported
-        addList.add(
+        //TODO FIX
+        /*addList.add(
           DividendItem(
             DateTime.now(),
             const Uuid().v4(),
@@ -139,7 +145,7 @@ class ExportRepositories extends BaseRepository {
             line.amount,
             line.bookingDate,
           ),
-        );
+        );*/
       }
     }
     if (addList.isNotEmpty) {
@@ -186,6 +192,8 @@ class ExportRepositories extends BaseRepository {
       depoID,
       totalInvest,
     );
+    throw UnimplementedError();
+    /*
     return await backend.runAuthenticatedRequest<ExportRecord?>((client) async {
       final response = await client
           .from('depot_exports')
@@ -206,7 +214,7 @@ class ExportRepositories extends BaseRepository {
       final depotItemsResponse = await client
           .from('depot_items')
           .select('id,isin')
-          .eq('depot_id', depoID)
+          .eq('depot_id', depoID!)
           .withConverter((data) => ModelConverter.modelList(
               data,
               (singleElement) => MapEntry(singleElement['isin'].toString(),
@@ -228,7 +236,7 @@ class ExportRepositories extends BaseRepository {
                     result.lineItems
                         .firstWhere((element) => element.isin == isin)
                         .name,
-                  ),
+                  ).toJson(),
                 )
                 .toList())
             .select()
@@ -239,43 +247,52 @@ class ExportRepositories extends BaseRepository {
         }
       }
 
-      await client.from('line_items').insert(
-            result.lineItems
-                .map(
-                  (e) => e.toCreateDto(
+      try {
+        final dataToInsert = result.lineItems
+            .map(
+              (e) => e
+                  .toCreateDto(
                     parentId,
                     isinDepotItemMapping[e.isin]!,
-                  ),
-                )
-                .toList(),
-          );
+                  )
+                  .toJson(),
+            )
+            .toList();
+        await client.from('line_items').insert(dataToInsert);
+      } catch (e) {
+        debugPrint(e.toString());
+      }
+
       //Update the stats for depot items
       final listOfUpdatedIsins = result.lineItems.map((e) => e.isin).toList();
-      final updateRequest = await client.rpc('updatedepotitems',
-          params: {
-            'isinfilter': listOfUpdatedIsins,
-          },
-          options: const FetchOptions(
-            forceResponse: true,
-          ));
+      final updateRequest = await client.rpc(
+        'updatedepotitems',
+        params: {
+          'isinfilter': listOfUpdatedIsins,
+        },
+      );
       handleNoValueResponse(updateRequest);
 
       return response;
     });
+    */
   }
 
   Future<bool> deleteExport(String exportID) async {
+    throw UnimplementedError();
+    /*
     return await backend.runAuthenticatedRequest<bool>((client) async {
       try {
         final result = await client
             .from('depot_exports')
             .delete()
             .match({'id': exportID}).select();
-        handleNoValueResponse(result);
+
         return true;
       } catch (ex) {
         return false;
       }
-    });
+     });
+     */
   }
 }

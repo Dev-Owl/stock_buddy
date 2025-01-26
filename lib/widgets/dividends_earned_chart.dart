@@ -1,13 +1,13 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:stock_buddy/models/dividend_item.dart';
-import 'package:charts_flutter_new/flutter.dart' as charts;
+import 'package:community_charts_flutter/community_charts_flutter.dart'
+    as charts;
 
 class DividendsEarendChart extends StatelessWidget {
   final List<DividendItem> chartData;
 
-  const DividendsEarendChart({required this.chartData, Key? key})
-      : super(key: key);
+  const DividendsEarendChart({required this.chartData, super.key});
 
   List<charts.Series<MapEntry<int, double>, String>> _createChartingDate() {
     final gainByMonth = chartData

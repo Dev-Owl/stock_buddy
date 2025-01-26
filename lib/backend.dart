@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:stock_buddy/utils/model_converter.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:convert';
+import 'package:dio/dio.dart';
 
-const String debugUrl = "http://localhost:3000";
+const String debugUrl = "http://127.0.0.1:5984/";
+const String userName = "admin";
+const String userPassword = "admin";
 
 class StockBuddyBackend {
   static StockBuddyBackend? _instance;
@@ -12,80 +13,46 @@ class StockBuddyBackend {
     return _instance!;
   }
 
-  late final PostgrestClient client;
-  DateTime? tokenEndOfLife;
-  String? userName;
-  String? userPassword;
-
   StockBuddyBackend(
-    String baseUrl, {
-    this.userName,
-    this.userPassword,
-  }) {
-    client = PostgrestClient(baseUrl);
-  }
+    this.baseUrl,
+  );
 
-  bool get hasLoginDetails => userName != null && userPassword != null;
+  final String baseUrl;
 
-  void removeSessionInfos() {
-    userName = null;
-    userPassword = null;
-    tokenEndOfLife = null;
-    client.headers.remove("Authorization");
-  }
-
-  Future<String> generateNewAuthToken() async {
-    if (tokenEndOfLife == null ||
-        tokenEndOfLife!.isBefore(DateTime.now().toUtc())) {
-      // Auth needed
-      if (userName == null || userPassword == null) {
-        throw "User name or password is missing";
-      }
-      // Remove the old JWT
-      client.headers.remove("Authorization");
-
-      final token = await client.rpc("authenticate", params: {
-        "username": userName,
-        "password": userPassword,
-      }).withConverter((data) => ModelConverter.first<String>(
-          data, (singleElement) => singleElement['token']));
-      tokenEndOfLife = DateTime.now().toUtc().add(
-            const Duration(
-              minutes: 4,
-            ),
-          );
-      client.auth(token);
-      return token;
-    }
-    return client.headers["Authorization"]!.substring(7);
-  }
-
-  Future<PostgrestClient> getAuthenticatedClient() async {
-    await generateNewAuthToken();
-    return client;
-  }
-
-  Future<bool> userHasPermission(String permissionRule) {
-    return runAuthenticatedRequest<bool>(
-      (client) {
-        return client.rpc("current_user_has_permission",
-            params: {"permission_rule": permissionRule}).withConverter(
-          (data) => ModelConverter.direct<bool>(
-            data,
-            orElse: () => false,
-          ),
-        );
-      },
+  Dio getDioClient() {
+    return Dio(
+      BaseOptions(
+        baseUrl: baseUrl,
+        headers: {
+          'Authorization': 'Basic ${base64Encode(
+            utf8.encode('$userName:$userPassword'),
+          )}',
+        },
+      ),
     );
   }
 
-  Future<T> runAuthenticatedRequest<T>(
-      Future<T> Function(PostgrestClient client) action) async {
-    try {
-      return action(await getAuthenticatedClient());
-    } catch (ex) {
-      debugPrint(ex.toString());
-      rethrow;
+  Future<Response<Map<String, dynamic>>> get(
+    String path,
+    Map<String, dynamic>? queryParameters,
+  ) async {
+    final response = await getDioClient().get<Map<String, dynamic>>(
+      path,
+      queryParameters: queryParameters,
+    );
+    if (response.statusCode != 200) {
+      throw Exception(
+        'Failed to get data from $path: ${response.statusCode}',
+      );
     }
+    return response;
+  }
+
+  Future<T> requestWithConverter<T>(
+    Future<Response<Map<String, dynamic>>> request,
+    T Function(Map<String, dynamic>) converter,
+  ) async {
+    final response = await request;
+    return converter(response.data!);
   }
 }

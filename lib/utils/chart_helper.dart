@@ -1,5 +1,6 @@
+import 'package:community_charts_flutter/community_charts_flutter.dart'
+    as charts;
 import 'package:intl/intl.dart';
-import 'package:charts_flutter_new/flutter.dart' as charts;
 
 final currencyNumberFormater =
     charts.BasicNumericTickFormatterSpec.fromNumberFormat(

@@ -10,9 +10,8 @@ ExportRecord _$ExportRecordFromJson(Map<String, dynamic> json) => ExportRecord(
       DateTime.parse(json['export_time'] as String),
       json['name'] as String,
       json['number'] as String,
-      DateTime.parse(json['created_at'] as String),
-      json['id'] as String,
-      json['owner_id'] as String,
+      DateTime.parse(json['createdAt'] as String),
+      json['_id'] as String,
       (json['win_loss_amount'] as num).toDouble(),
       (json['win_loss_percent'] as num).toDouble(),
       json['depot_id'] as String,
@@ -21,9 +20,8 @@ ExportRecord _$ExportRecordFromJson(Map<String, dynamic> json) => ExportRecord(
 
 Map<String, dynamic> _$ExportRecordToJson(ExportRecord instance) =>
     <String, dynamic>{
-      'created_at': instance.createdAt.toIso8601String(),
-      'id': instance.id,
-      'owner_id': instance.ownerId,
+      'createdAt': instance.createdAt.toIso8601String(),
+      '_id': instance.id,
       'export_time': instance.exportDate.toIso8601String(),
       'name': instance.customerName,
       'number': instance.depotNumber,

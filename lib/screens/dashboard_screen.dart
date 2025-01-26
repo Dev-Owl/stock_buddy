@@ -15,7 +15,7 @@ import 'package:stock_buddy/widgets/dropdown_confirm.dart';
 import 'package:stock_buddy/widgets/text_confirm.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  const DashboardScreen({super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -25,15 +25,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<DataDepot> _data = [];
 
   late final Future<void> _initialLoad;
-  var _firstLoad = true;
   late final DepotRepository _repo;
-
-  bool _dragging = false;
+  var _firstLoad = true;
+  var _dragging = false;
 
   @override
   void initState() {
-    _repo = DepotRepository(context.read<StockBuddyBackend>());
     super.initState();
+    _repo = DepotRepository(context.read<StockBuddyBackend>());
     _initialLoad = _loadData();
   }
 
@@ -184,11 +183,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: const FaIcon(FontAwesomeIcons.plus),
       ),
       drawer: Drawer(
-        // Add a ListView to the drawer. This ensures the user can scroll
-        // through the options in the drawer if there isn't enough vertical
-        // space to fit everything.
         child: ListView(
-          // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
           children: [
             const DrawerHeader(
@@ -202,14 +197,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onTap: () {
                 // Update the state of the app.
                 // ...
-              },
-            ),
-            ListTile(
-              title: const Text('Logout'),
-              onTap: () async {
-                final backend = context.read<StockBuddyBackend>();
-                backend.removeSessionInfos();
-                context.go('/login');
               },
             ),
           ],

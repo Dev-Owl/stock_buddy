@@ -23,8 +23,8 @@ class ReportingScreen extends StatefulWidget {
     this.exportId,
     this.lineItemsIsin,
     this.embededMode = false,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<ReportingScreen> createState() => _ReportingScreenState();
@@ -41,16 +41,20 @@ class _ReportingScreenState extends State<ReportingScreen> {
   }
 
   Future<void> _loadingReport() async {
-    final repo = ReportingRepository(context.read<StockBuddyBackend>());
-    data = await repo.buildReportingModel(
-      widget.depotId,
-      isinFilter: isinFilter,
-    );
-    if (allAvalibleItems.isEmpty) {
-      allAvalibleItems.addAll(data!.lastItems);
-    }
+    try {
+      final repo = ReportingRepository(context.read<StockBuddyBackend>());
+      data = await repo.buildReportingModel(
+        widget.depotId,
+        isinFilter: isinFilter,
+      );
+      if (allAvalibleItems.isEmpty) {
+        allAvalibleItems.addAll(data!.lastItems);
+      }
 
-    isinFilter.addAll(data!.lastItems.map((e) => e.isin).toList());
+      isinFilter.addAll(data!.lastItems.map((e) => e.isin).toList());
+    } catch (e) {
+      debugPrint("Error loading report: $e");
+    }
   }
 
   @override
@@ -344,15 +348,13 @@ class _ReportingScreenState extends State<ReportingScreen> {
                                           e.isin,
                                         ),
                                       ),
-                                      ...(e.tags ?? [])
-                                          .map(
-                                            (e) => Chip(
-                                              label: Text(
-                                                e,
-                                              ),
-                                            ),
-                                          )
-                                          .toList()
+                                      ...(e.tags ?? []).map(
+                                        (e) => Chip(
+                                          label: Text(
+                                            e,
+                                          ),
+                                        ),
+                                      )
                                     ],
                                   ),
                                   onChanged: (newState) {

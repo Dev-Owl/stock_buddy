@@ -12,7 +12,8 @@ class ReportingRepository extends BaseRepository {
       {List<String>? isinFilter}) async {
     late final List<ReportChartModel> chartingData;
     final isinFilterPresent = isinFilter != null && isinFilter.isNotEmpty;
-
+    throw UnimplementedError();
+    /*
     return await backend
         .runAuthenticatedRequest<ReportScreenModel>((client) async {
       final chartingData = await client.rpc(
@@ -41,7 +42,7 @@ class ReportingRepository extends BaseRepository {
 
       if (isinFilter?.isNotEmpty ?? false) {
         lastLineItemsQuery =
-            lastLineItemsQuery.in_('line_items.isin', isinFilter!);
+            lastLineItemsQuery.inFilter('line_items.isin', isinFilter!);
       }
       final lastLineItemsQueryCompleted = lastLineItemsQuery.order(
         'export_time',
@@ -57,7 +58,8 @@ class ReportingRepository extends BaseRepository {
           .eq('depot_id', depotID);
 
       if (isinFilterPresent) {
-        dividendsQuery = dividendsQuery.in_('depot_items.isin', isinFilter);
+        dividendsQuery =
+            dividendsQuery.inFilter('depot_items.isin', isinFilter);
       }
       final dividendItems = await dividendsQuery.withConverter(
         (data) => ModelConverter.modelList(
@@ -77,6 +79,7 @@ class ReportingRepository extends BaseRepository {
         dividendItems,
       );
     });
+    */
   }
 }
 

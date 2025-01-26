@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:stock_buddy/models/report_chart_model.dart';
-import 'package:charts_flutter_new/flutter.dart' as charts;
+import 'package:community_charts_flutter/community_charts_flutter.dart'
+    as charts;
 import 'package:stock_buddy/utils/chart_helper.dart';
 
 class CurrentValueChar extends StatelessWidget {
   final List<ReportChartModel> chartData;
-  const CurrentValueChar({required this.chartData, Key? key}) : super(key: key);
+  const CurrentValueChar({required this.chartData, super.key});
 
   List<charts.Series<ReportChartModel, DateTime>> _createChartingDate() {
     return [

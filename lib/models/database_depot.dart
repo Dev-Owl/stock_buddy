@@ -10,35 +10,9 @@ class DataDepot extends BaseDatabaseModel {
   final String? notes;
   final String name;
   final String number;
-  @JsonKey(
-    toJson: toNull,
-    includeIfNull: false,
-    defaultValue: 0,
-    name: 'totalexports',
-  )
   final int totalExports; //total amount of exports
-  @JsonKey(
-    toJson: toNull,
-    includeIfNull: false,
-    defaultValue: 0,
-    name: 'totalgainloss',
-  )
   final double totalGainLoss; //from last export sum
-
-  @JsonKey(
-    toJson: toNull,
-    includeIfNull: false,
-    defaultValue: 0,
-    name: 'totalgainlosspercent',
-  )
   final double totalGainLossPercent;
-
-  @JsonKey(
-    toJson: toNull,
-    includeIfNull: false,
-    defaultValue: null,
-    name: 'export_time',
-  )
   final DateTime? lastExportTime;
 
   DataDepot(
@@ -46,21 +20,12 @@ class DataDepot extends BaseDatabaseModel {
     this.number,
     DateTime createdAt,
     String id,
-    String ownerId,
     this.totalExports,
     this.totalGainLoss,
     this.totalGainLossPercent,
     this.notes,
     this.lastExportTime,
-  ) : super(createdAt, id, ownerId);
-
-  DataDepot.forInsert(this.name, this.number,
-      {this.totalExports = 0,
-      this.totalGainLoss = 0,
-      this.totalGainLossPercent = 0,
-      this.lastExportTime,
-      this.notes})
-      : super(DateTime.now(), '', '');
+  ) : super(createdAt, id);
 
   factory DataDepot.fromJson(Map<String, dynamic> json) =>
       _$DataDepotFromJson(json);

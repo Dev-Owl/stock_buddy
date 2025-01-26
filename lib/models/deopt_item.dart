@@ -23,9 +23,8 @@ class DepotItem extends BaseDatabaseModel {
       _$DepotItemFromJson(json);
 
   DepotItem(
-    DateTime createdAt,
-    String id,
-    String ownerId,
+    super.createdAt,
+    super.id,
     this.tags,
     this.isin,
     this.depotId,
@@ -35,7 +34,7 @@ class DepotItem extends BaseDatabaseModel {
     this.lastWinLoss,
     this.lastWinLossPrecent,
     this.active,
-  ) : super(createdAt, id, ownerId);
+  );
 
   Map<String, dynamic> toJson() => _$DepotItemToJson(this);
 }

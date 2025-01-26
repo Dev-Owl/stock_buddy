@@ -18,6 +18,8 @@ class DepotLineRepository extends BaseRepository {
     List<String> tags,
     bool active,
   ) async {
+    throw UnimplementedError();
+    /*
     return await backend.runAuthenticatedRequest<bool>((client) async {
       await client.from('depot_items').update(
         {
@@ -25,13 +27,15 @@ class DepotLineRepository extends BaseRepository {
           'tags': tags,
           'active': active,
         },
-        options: const FetchOptions(head: true),
       ).eq('id', id);
       return true;
     });
+    */
   }
 
   Future<List<DepotItem>> allItemsByDepotId(String depotId) {
+    throw UnimplementedError();
+    /*
     return backend.runAuthenticatedRequest<List<DepotItem>>((client) async {
       return await client
           .from('depot_items')
@@ -40,6 +44,7 @@ class DepotLineRepository extends BaseRepository {
           .withConverter((data) => ModelConverter.modelList(
               data, (singleElement) => DepotItem.fromJson(singleElement)));
     });
+    */
   }
 
   Future<RemoteDataSourceDetails<DepotItem>> getPagedListOfItems({
@@ -51,6 +56,8 @@ class DepotLineRepository extends BaseRepository {
     required bool sortAsc,
     required bool showActiveOnly,
   }) async {
+    throw UnimplementedError();
+    /*
     const orderColumnMap = {
       0: 'isin',
       1: 'name',
@@ -81,8 +88,9 @@ class DepotLineRepository extends BaseRepository {
       if (_totalCache.containsKey(depotId) == false) {
         final response = await client
             .from("depot_items")
-            .select('id', const FetchOptions(count: CountOption.exact))
-            .eq("depot_id", depotId);
+            .select('id')
+            .eq("depot_id", depotId)
+            .count(CountOption.exact);
         handleNoValueResponse(response);
         _totalCache[depotId] = response.count ?? 0;
       }
@@ -95,35 +103,37 @@ class DepotLineRepository extends BaseRepository {
       );
     });
   }
+  */
+  }
 }
 
 class DepotLineItemsDataSource extends AdvancedDataTableSource<DepotItem> {
   final GetRowCallback<DepotItem> getRowCallback;
   final String depotId;
   final StockBuddyBackend backend;
-  late final DepotLineRepository _repo;
-  String? _lastSearchQuery;
-  bool _showActiveOnly = true;
+  late final DepotLineRepository repo;
+  String? lastSearchQuery;
+  bool showActiveOnly = true;
 
   DepotLineItemsDataSource({
     required this.depotId,
     required this.getRowCallback,
     required this.backend,
   }) {
-    _repo = DepotLineRepository(backend);
+    repo = DepotLineRepository(backend);
   }
 
   @override
   Future<RemoteDataSourceDetails<DepotItem>> getNextPage(
       NextPageRequest pageRequest) {
-    return _repo.getPagedListOfItems(
+    return repo.getPagedListOfItems(
       depotId: depotId,
-      filter: _lastSearchQuery,
+      filter: lastSearchQuery,
       offset: pageRequest.offset,
       orderIndex: pageRequest.columnSortIndex ?? 2,
       pageSize: pageRequest.pageSize,
       sortAsc: pageRequest.sortAscending ?? true,
-      showActiveOnly: _showActiveOnly,
+      showActiveOnly: showActiveOnly,
     );
   }
 
@@ -141,10 +151,9 @@ class DepotLineItemsDataSource extends AdvancedDataTableSource<DepotItem> {
   int get selectedRowCount => 0; //this source doesnt support this
 
   void applyServerSideFilter(String? newSearchQuery, bool showActiveOnly) {
-    if (newSearchQuery != _lastSearchQuery ||
-        _showActiveOnly != showActiveOnly) {
-      _lastSearchQuery = newSearchQuery;
-      _showActiveOnly = showActiveOnly;
+    if (newSearchQuery != lastSearchQuery || showActiveOnly != showActiveOnly) {
+      lastSearchQuery = newSearchQuery;
+      showActiveOnly = showActiveOnly;
       setNextView();
     }
   }

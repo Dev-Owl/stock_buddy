@@ -19,6 +19,8 @@ class ExportLineRepository extends BaseRepository {
     bool sortAsc = true,
     String? isinFilter,
   }) async {
+    throw UnimplementedError();
+    /*
     const orderColumnMap = {
       0: 'isin',
       1: 'name',
@@ -60,12 +62,9 @@ class ExportLineRepository extends BaseRepository {
       if (_totalCache.containsKey(exportId) == false) {
         final response = await client
             .from("line_items")
-            .select(
-                'id',
-                const FetchOptions(
-                  count: CountOption.exact,
-                ))
-            .eq("export_id", exportId);
+            .select('id')
+            .eq("export_id", exportId)
+            .count(CountOption.exact);
         handleNoValueResponse(response);
         _totalCache[exportId] = response.count ?? 0;
       }
@@ -75,6 +74,7 @@ class ExportLineRepository extends BaseRepository {
         filteredRows: isinFilter == null ? null : response.length,
       );
     });
+    */
   }
 }
 
@@ -83,10 +83,10 @@ typedef OnNewPageLoadCallback<T> = void Function(
     RemoteDataSourceDetails<T> newpage);
 
 class ExportLineDataAdapter extends AdvancedDataTableSource<ExportLineItem> {
-  late final ExportLineRepository _repo;
+  late final ExportLineRepository repo;
   final List<ExportLineItem> selectedRows = [];
   final String parentExportId;
-  String? _lastSearchQuery;
+  String? lastSearchQuery;
   final GetRowCallback<ExportLineItem> getRowCallback;
   final OnNewPageLoadCallback<ExportLineItem> onNewPage;
   final StockBuddyBackend backend;
@@ -96,7 +96,7 @@ class ExportLineDataAdapter extends AdvancedDataTableSource<ExportLineItem> {
     required this.onNewPage,
     required this.backend,
   }) {
-    _repo = ExportLineRepository(backend);
+    repo = ExportLineRepository(backend);
   }
 
   void addSelectedRow(ExportLineItem row) {
@@ -110,8 +110,8 @@ class ExportLineDataAdapter extends AdvancedDataTableSource<ExportLineItem> {
   }
 
   void applyServerSideFilter(String? newSearchQuery) {
-    if (newSearchQuery != _lastSearchQuery) {
-      _lastSearchQuery = newSearchQuery;
+    if (newSearchQuery != lastSearchQuery) {
+      lastSearchQuery = newSearchQuery;
       setNextView();
     }
   }
@@ -119,9 +119,9 @@ class ExportLineDataAdapter extends AdvancedDataTableSource<ExportLineItem> {
   @override
   Future<RemoteDataSourceDetails<ExportLineItem>> getNextPage(
       NextPageRequest pageRequest) async {
-    final result = await _repo.getPagedListOfItems(
+    final result = await repo.getPagedListOfItems(
       exportId: parentExportId,
-      isinFilter: _lastSearchQuery,
+      isinFilter: lastSearchQuery,
       offset: pageRequest.offset,
       orderIndex: pageRequest.columnSortIndex ?? 2,
       pageSize: pageRequest.pageSize,
