@@ -2,7 +2,6 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:stock_buddy/backend.dart';
 import 'package:stock_buddy/models/database_depot.dart';
@@ -74,6 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (_data.isEmpty)
                     Center(
                       child: Column(
+                        spacing: 15,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: const [
                           CircleAvatar(
@@ -82,9 +82,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               FontAwesomeIcons.piggyBank,
                               size: 60,
                             ),
-                          ),
-                          SizedBox(
-                            height: 15,
                           ),
                           Text('No data found')
                         ],
@@ -208,9 +205,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _pickExportFile() async {
-    await _repo.updateDepotNotes(
-        "depot:2e985ba3-104d-4934-a139-0b5e0204fc49", "TESTING");
-
     final result = await FilePicker.platform.pickFiles();
     if (result != null && result.files.single.path != null) {
       _addNewExport(result.files.single.path!);
@@ -227,12 +221,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                spacing: 15,
                 children: const [
                   // The loading indicator
                   CircularProgressIndicator(),
-                  SizedBox(
-                    height: 15,
-                  ),
                   // Some text
                   Text('Loading...')
                 ],

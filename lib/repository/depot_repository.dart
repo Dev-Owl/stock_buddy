@@ -1,4 +1,5 @@
 import 'package:stock_buddy/models/database_depot.dart';
+import 'package:stock_buddy/models/deopt_item.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
 import 'package:uuid/uuid.dart';
 
@@ -76,11 +77,15 @@ class DepotRepository extends BaseRepository {
     });
   }
 
-  Future<String> updateDepotNotes(String id, String notes) async {
-    final depot = await backend
+  Future<DataDepot> getDepotById(String id) async {
+    return await backend
         .requestWithConverter(backend.get("stockbuddy/$id", null), (data) {
       return DataDepot.fromJson(data);
     });
+  }
+
+  Future<String> updateDepotNotes(String id, String notes) async {
+    final depot = await getDepotById(id);
     depot.notes = notes;
     backend.requestWithConverter(
         backend.put("stockbuddy/${depot.id}", depot.toJson()), (data) {

@@ -22,6 +22,7 @@ class _DepotDetailsMainState extends State<DepotDetailsMain> {
 
   DataDepot? data;
   late final Future<void> _initalLoad;
+
   @override
   void initState() {
     super.initState();
@@ -32,7 +33,7 @@ class _DepotDetailsMainState extends State<DepotDetailsMain> {
 
   Future<void> _loadData({bool callSetState = true}) async {
     final repo = DepotRepository(context.read<StockBuddyBackend>());
-    data = (await repo.getAllDepots(filterById: widget.depotId)).first;
+    data = await repo.getDepotById(widget.depotId);
     textController.text = data?.notes ?? "";
     if (callSetState) {
       setState(() {});
