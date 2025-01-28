@@ -6,6 +6,20 @@ abstract class BaseRepository {
 
   BaseRepository(this.backend);
 
+  Future<String> getCurrentRevById(String id) async {
+    return backend.head("stockbuddy/$id").then((value) {
+      return value.headers.value("ETag")!.replaceAll('"', "");
+    });
+  }
+
+  Future<bool> delete(String id, String rev) async {
+    return backend.requestWithConverter(
+        backend.delete("stockbuddy/$id", queryParameters: {"rev": rev}),
+        (data) {
+      return true;
+    });
+  }
+
   void handleNoValueResponse(PostgrestResponse response) {
     handleResponse(response, null);
   }

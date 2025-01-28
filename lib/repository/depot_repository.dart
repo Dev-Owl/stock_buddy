@@ -27,12 +27,6 @@ class DepotRepository extends BaseRepository {
     });
   }
 
-  Future<String> getCurrentRevById(String id) async {
-    return backend.head("stockbuddy/$id").then((value) {
-      return value.headers.value("ETag")!.replaceAll('"', "");
-    });
-  }
-
   Future<String?> getRepositoryIdByNumber(String number) async {
     var queryParameter = <String, String>{};
     queryParameter["keys"] = '%5B"$number"%5D';
@@ -70,11 +64,7 @@ class DepotRepository extends BaseRepository {
   }
 
   Future<bool> deleteDepot(String id, String rev) async {
-    return backend.requestWithConverter(
-        backend.delete("stockbuddy/$id", queryParameters: {"rev": rev}),
-        (data) {
-      return true;
-    });
+    return delete(id, rev);
   }
 
   Future<DataDepot> getDepotById(String id) async {

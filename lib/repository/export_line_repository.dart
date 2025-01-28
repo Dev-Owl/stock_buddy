@@ -105,7 +105,8 @@ class ExportLineDataAdapter extends AdvancedDataTableSource<ExportLineItem> {
   }
 
   void removeSelectedRow(ExportLineItem row) {
-    selectedRows.removeWhere((element) => element.id == row.id);
+    throw UnimplementedError();
+    //selectedRows.removeWhere((element) => element.id == row.id);
     notifyListeners();
   }
 
@@ -138,7 +139,8 @@ class ExportLineDataAdapter extends AdvancedDataTableSource<ExportLineItem> {
   }
 
   bool isSelected(String id) {
-    return selectedRows.any((element) => element.id == id);
+    throw UnimplementedError();
+    //return selectedRows.any((element) => element.id == id);
   }
 
   @override

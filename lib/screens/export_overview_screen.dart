@@ -8,8 +8,7 @@ import 'package:stock_buddy/widgets/export_overview_tile.dart';
 
 class ExportOverviewScreen extends StatefulWidget {
   final String depotId;
-  const ExportOverviewScreen({required this.depotId, Key? key})
-      : super(key: key);
+  const ExportOverviewScreen({required this.depotId, super.key});
 
   @override
   State<ExportOverviewScreen> createState() => _ExportOverviewScreennState();
@@ -84,8 +83,12 @@ class _ExportOverviewScreennState extends State<ExportOverviewScreen> {
                           Widget continueButton = TextButton(
                             child: const Text("Delete"),
                             onPressed: () async {
-                              await exportRepo.deleteExport(currentRow.id);
-                              if (!mounted) return;
+                              await exportRepo
+                                  .getCurrentRevById(currentRow.id)
+                                  .then((rev) => exportRepo.deleteExport(
+                                      currentRow.id, rev));
+
+                              if (!context.mounted) return;
                               Navigator.of(context).pop();
                               _loadData();
                             },

@@ -1,9 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:postgrest/postgrest.dart';
-import 'package:stock_buddy/models/create_depot_item.dart';
+import 'package:intl/intl.dart';
 import 'package:stock_buddy/models/create_export_record.dart';
-import 'package:stock_buddy/models/deopt_item.dart';
 import 'package:stock_buddy/models/dividend_item.dart';
 import 'package:stock_buddy/models/export_record.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
@@ -12,8 +10,6 @@ import 'package:stock_buddy/repository/depot_repository.dart';
 import 'package:stock_buddy/repository/dividend_repoistory.dart';
 import 'package:stock_buddy/utils/duplicate_export_exception.dart';
 import 'package:stock_buddy/utils/ing_diba_export_reader.dart';
-import 'package:stock_buddy/utils/model_converter.dart';
-import 'package:uuid/uuid.dart';
 
 typedef UserActionNeededCallback<T> = Future<T> Function();
 
@@ -21,46 +17,45 @@ class ExportRepositories extends BaseRepository {
   ExportRepositories(super.backend);
 
   Future<List<ExportRecord>> getAllExportsForDept(String depotId) async {
-    throw UnimplementedError();
-    /*
-    return await backend
-        .runAuthenticatedRequest<List<ExportRecord>>((client) async {
-      final response = await client
-          .from('depot_exports')
-          .select()
-          .eq('depot_id', depotId)
-          .order(
-            'export_time',
-            ascending: false,
-          )
-          .withConverter<List<ExportRecord>>(
-            (data) => ModelConverter.modelList(
-              data,
-              (singleElement) => ExportRecord.fromJson(
-                singleElement,
-              ),
-            ),
-          );
-      return response;
+    final queryParameter = {
+      'include_docs': 'true',
+    };
+
+    queryParameter["keys"] = '%5B"$depotId"%5D';
+
+    return backend.requestWithConverter(
+        backend.get(
+            "stockbuddy/_partition/depotExport/_design/depot/_view/exports",
+            queryParameter), (data) {
+      var result = <ExportRecord>[];
+      if (data["rows"] != null) {
+        for (var item in data["rows"]) {
+          result.add(ExportRecord.fromJson(item["doc"]));
+        }
+      }
+      return result;
     });
-    */
   }
 
   Future<bool> doesExportForDepotExists(
       String depotId, DateTime exportTime) async {
-    throw UnimplementedError();
-    /*
-    return await backend.runAuthenticatedRequest<bool>((client) async {
-      final response = await client
-          .from('depot_exports')
-          .select('id')
-          .eq('depot_id', depotId)
-          .eq('export_time', exportTime)
-          .count(CountOption.exact);
-      handleNoValueResponse(response);
-      return (response.count ?? 0) == 1;
+    final queryParameter = {
+      'reduce': 'true',
+      'group': 'true',
+    };
+    final dateFormat = DateFormat("yyyy-MM-ddTHH:mm:ss");
+    queryParameter["keys"] = backend
+        .encodePath('[["depot:$depotId","${dateFormat.format(exportTime)}"]]');
+    return backend.requestWithConverter(
+        backend.get(
+            "stockbuddy/_partition/depotExport/_design/depot/_view/exportTime",
+            queryParameter), (data) {
+      var result = false;
+      if (data["rows"] != null) {
+        data["rows"].length > 0 ? result = true : result = false;
+      }
+      return result;
     });
-    */
   }
 
   Future<int> importNewData(
@@ -278,21 +273,7 @@ class ExportRepositories extends BaseRepository {
     */
   }
 
-  Future<bool> deleteExport(String exportID) async {
-    throw UnimplementedError();
-    /*
-    return await backend.runAuthenticatedRequest<bool>((client) async {
-      try {
-        final result = await client
-            .from('depot_exports')
-            .delete()
-            .match({'id': exportID}).select();
-
-        return true;
-      } catch (ex) {
-        return false;
-      }
-     });
-     */
+  Future<bool> deleteExport(String exportID, String rev) async {
+    return delete(exportID, rev);
   }
 }

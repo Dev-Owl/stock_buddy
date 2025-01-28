@@ -43,8 +43,8 @@ class ExportOverviewListTile extends StatelessWidget {
       // The child of the Slidable is what the user sees when the
       // component is not dragged.
       child: ListTile(
-        title: Text('Total invest: ${data.totalValue}€'),
-        subtitle: Text("Export from ${format.format(data.exportDate)}"),
+        title: Text('Total invest: ${data.totalSpent}€'),
+        subtitle: Text("Export from ${format.format(data.exportTime)}"),
         trailing: TextHelper.number(
           data.winLossPercent,
           decoration: '%',

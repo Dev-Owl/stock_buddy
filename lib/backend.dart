@@ -48,7 +48,7 @@ class StockBuddyBackend {
     return response;
   }
 
-  String _encodePath(String path) {
+  String encodePath(String path) {
     return Uri.encodeFull(path);
   }
 
@@ -61,7 +61,7 @@ class StockBuddyBackend {
     dio.options.headers['Content-Type'] = 'application/json';
     dio.options.headers['Accept'] = 'application/json';
     final response = await dio.put<Map<String, dynamic>>(
-      _encodePath(path),
+      encodePath(path),
       data: data,
     );
     final successStatusCodes = [200, 201, 202];
@@ -80,7 +80,7 @@ class StockBuddyBackend {
     final dio = getDioClient();
     dio.options.headers['Accept'] = 'application/json';
     final response = await dio.delete<Map<String, dynamic>>(
-      _encodePath(path),
+      encodePath(path),
       queryParameters: queryParameters,
     );
     final successStatusCodes = [200, 201, 202];
@@ -98,7 +98,7 @@ class StockBuddyBackend {
   }) async {
     final dio = getDioClient();
     final response = await dio.head<Map<String, dynamic>>(
-      _encodePath(path),
+      encodePath(path),
       queryParameters: queryParameters,
     );
     final successStatusCodes = [200, 201, 202];

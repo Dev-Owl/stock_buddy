@@ -382,9 +382,10 @@ class _ReportingScreenState extends State<ReportingScreen> {
 
   bool onScreenFilter(ExportLineItem element, String filter) {
     filter = filter.toLowerCase();
-    return filter.isEmpty ||
+    throw UnimplementedError();
+    /* return filter.isEmpty ||
         element.isin.toLowerCase() == filter ||
         element.isin.toLowerCase().contains(filter) ||
-        (element.tags?.any((s) => s.toLowerCase() == filter) ?? false);
+        (element.tags?.any((s) => s.toLowerCase() == filter) ?? false);*/
   }
 }

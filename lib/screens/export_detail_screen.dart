@@ -47,6 +47,8 @@ class _ExportDetailScreenState extends State<ExportDetailScreen> {
   }
 
   DataRow _buildRow(ExportLineItem row) {
+    throw UnimplementedError();
+    /*
     return DataRow(
       selected: _source.isSelected(row.id),
       onSelectChanged: (state) {
@@ -101,6 +103,7 @@ class _ExportDetailScreenState extends State<ExportDetailScreen> {
         ),
       ],
     );
+    */
   }
 
   void _rowSelectionChanged() {
