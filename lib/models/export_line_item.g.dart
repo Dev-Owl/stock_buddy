@@ -21,7 +21,7 @@ ExportLineItem _$ExportLineItemFromJson(Map<String, dynamic> json) =>
       (json['currentWinLoss'] as num).toDouble(),
       (json['currentWindLossPercent'] as num).toDouble(),
       json['depotItemId'] as String,
-    );
+    )..tags = (json['tags'] as List<dynamic>).map((e) => e as String).toList();
 
 Map<String, dynamic> _$ExportLineItemToJson(ExportLineItem instance) =>
     <String, dynamic>{
@@ -38,4 +38,5 @@ Map<String, dynamic> _$ExportLineItemToJson(ExportLineItem instance) =>
       'currentWinLoss': instance.currentWinLoss,
       'currentWindLossPercent': instance.currentWindLossPercent,
       'depotItemId': instance.depotItemId,
+      'tags': instance.tags,
     };

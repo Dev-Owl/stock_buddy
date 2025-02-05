@@ -1,4 +1,6 @@
 import 'package:stock_buddy/models/create_export_line_record.dart';
+import 'package:stock_buddy/models/export_line_item.dart';
+import 'package:stock_buddy/models/export_record.dart';
 
 class DepotLineItem {
   final String isin;
@@ -31,22 +33,21 @@ class DepotLineItem {
     this.currentWindLossPercent,
   );
 
-  CreateExportLine toCreateDto(String exportId, String depotLineItemId) {
-    return CreateExportLine(
-        exportId,
-        isin,
-        name,
-        amount,
-        amountType,
-        singlePurchasePrice,
-        currency,
-        totalPurchasePrice,
-        currentValue,
-        currentValueTime,
-        marketName,
-        currentTotalValue,
-        currentWinLoss,
-        currentWindLossPercent,
-        depotLineItemId);
+  ExportLineItem toCreateDto(String depotLineItemId) {
+    return ExportLineItem(
+      isin,
+      name,
+      amount,
+      amountType,
+      singlePurchasePrice,
+      currency,
+      totalPurchasePrice,
+      currentValue,
+      marketName,
+      currentTotalValue,
+      currentWinLoss,
+      currentWindLossPercent,
+      depotLineItemId,
+    );
   }
 }

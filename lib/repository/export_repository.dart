@@ -2,6 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stock_buddy/models/create_export_record.dart';
+import 'package:stock_buddy/models/deopt_item.dart';
 import 'package:stock_buddy/models/dividend_item.dart';
 import 'package:stock_buddy/models/export_record.dart';
 import 'package:stock_buddy/repository/base_repository.dart';
@@ -10,6 +11,7 @@ import 'package:stock_buddy/repository/depot_repository.dart';
 import 'package:stock_buddy/repository/dividend_repoistory.dart';
 import 'package:stock_buddy/utils/duplicate_export_exception.dart';
 import 'package:stock_buddy/utils/ing_diba_export_reader.dart';
+import 'package:uuid/uuid.dart';
 
 typedef UserActionNeededCallback<T> = Future<T> Function();
 
@@ -44,8 +46,8 @@ class ExportRepositories extends BaseRepository {
       'group': 'true',
     };
     final dateFormat = DateFormat("yyyy-MM-ddTHH:mm:ss");
-    queryParameter["keys"] = backend
-        .encodePath('[["depot:$depotId","${dateFormat.format(exportTime)}"]]');
+    queryParameter["keys"] =
+        '[["$depotId","${dateFormat.format(exportTime)}"]]';
     return backend.requestWithConverter(
         backend.get(
             "stockbuddy/_partition/depotExport/_design/depot/_view/exportTime",
@@ -178,99 +180,78 @@ class ExportRepositories extends BaseRepository {
 
     final percentageTotalWinLoss = (totalWinLoss / totalInvest) * 100;
 
-    final creationModel = CreateExportRecord(
+    final newExport = "depotExport:${Uuid().v4()}";
+    //Ensure we have depot line item for all
+    final isinList = result.lineItems.map((e) => e.isin).toList();
+    // Get all line items currently in depot
+    final depotIsinList = await backend.requestWithConverter(
+        backend.get(
+          "stockbuddy/_partition/depotItem/_design/depot/_view/itemIsin",
+          {"keys": '["$depoID"]'},
+        ), (r) {
+      var result = <String, String>{};
+      if (r["rows"] != null) {
+        for (var item in r["rows"]) {
+          result[item["value"][0].toString()] = item["value"][1].toString();
+        }
+      }
+      return result;
+    });
+
+    isinList.removeWhere((isin) => depotIsinList.containsKey(isin));
+    //All items in here are missing a record until now and need to be created
+    for (var isin in isinList) {
+      final exportItem =
+          result.lineItems.firstWhere((element) => element.isin == isin);
+      final newDepotItem = DepotItem(
+        active: true,
+        createdAt: DateTime.now(),
+        isin: isin,
+        lastTotalValue: exportItem.currentTotalValue,
+        depotId: depoID,
+        lastWinLoss: exportItem.currentWinLoss,
+        lastWinLossPercent: exportItem.currentWindLossPercent,
+        name: exportItem.name,
+        totalDividends: 0,
+        note: "",
+        tags: [],
+        id: "depotItem:${Uuid().v4()}",
+      );
+      depotIsinList[isin] = newDepotItem.id; // ensure new items are tracked
+      await backend.requestWithConverter(
+          backend.put("stockbuddy/${newDepotItem.id}", newDepotItem.toJson()),
+          (r) {
+        newDepotItem.rev = r["rev"];
+      });
+    }
+    // Update the export record with line items
+    final exportRecord = ExportRecord(
       result.exportDate,
       result.customerName,
       result.depotNumber,
+      DateTime.now(),
+      newExport,
       totalWinLoss,
       percentageTotalWinLoss,
       depoID,
+      null,
       totalInvest,
+      [],
     );
-    throw UnimplementedError();
-    /*
-    return await backend.runAuthenticatedRequest<ExportRecord?>((client) async {
-      final response = await client
-          .from('depot_exports')
-          .insert(
-            creationModel.toJson(),
-          )
-          .select()
-          .withConverter(
-            (responseData) => ModelConverter.first(
-              responseData,
-              (singleElement) => ExportRecord.fromJson(singleElement),
-            ),
-          );
+    exportRecord.lineItems = result.lineItems
+        .map((e) => e.toCreateDto(depotIsinList[e.isin]!))
+        .toList();
 
-      final parentId = response.id;
-      //Ensure we have depot line item for all
-      final isinList = result.lineItems.map((e) => e.isin).toList();
-      final depotItemsResponse = await client
-          .from('depot_items')
-          .select('id,isin')
-          .eq('depot_id', depoID!)
-          .withConverter((data) => ModelConverter.modelList(
-              data,
-              (singleElement) => MapEntry(singleElement['isin'].toString(),
-                  singleElement['id'].toString())));
-
-      isinList.removeWhere((isin) =>
-          depotItemsResponse.any((isinMapping) => isinMapping.key == isin));
-      Map<String, String> isinDepotItemMapping = {};
-      isinDepotItemMapping.addEntries(depotItemsResponse);
-      if (isinList.isNotEmpty) {
-        //All items in here are missing a record until now
-        final creatioResponse = await client
-            .from('depot_items')
-            .insert(isinList
-                .map(
-                  (isin) => CreateDepotItem(
-                    depoID!,
-                    isin,
-                    result.lineItems
-                        .firstWhere((element) => element.isin == isin)
-                        .name,
-                  ).toJson(),
-                )
-                .toList())
-            .select()
-            .withConverter((data) => ModelConverter.modelList(
-                data, (singleElement) => DepotItem.fromJson(singleElement)));
-        for (var element in creatioResponse) {
-          isinDepotItemMapping[element.isin] = element.id;
-        }
-      }
-
-      try {
-        final dataToInsert = result.lineItems
-            .map(
-              (e) => e
-                  .toCreateDto(
-                    parentId,
-                    isinDepotItemMapping[e.isin]!,
-                  )
-                  .toJson(),
-            )
-            .toList();
-        await client.from('line_items').insert(dataToInsert);
-      } catch (e) {
-        debugPrint(e.toString());
-      }
-
-      //Update the stats for depot items
-      final listOfUpdatedIsins = result.lineItems.map((e) => e.isin).toList();
-      final updateRequest = await client.rpc(
-        'updatedepotitems',
-        params: {
-          'isinfilter': listOfUpdatedIsins,
-        },
-      );
-      handleNoValueResponse(updateRequest);
-
-      return response;
+    await backend.requestWithConverter(
+        backend.put("stockbuddy/$newExport", exportRecord.toJson()), (r) {
+      exportRecord.rev = r["rev"];
     });
-    */
+    //TODO Update the existing line item with the new export details
+    final listOfUpdatedIsins = result.lineItems.map((e) => e.isin).toList();
+    // Get all line items currently in depot
+    // Update the data for the line items according to the value in result.lineItems
+
+    throw UnimplementedError();
   }
 
   Future<bool> deleteExport(String exportID, String rev) async {

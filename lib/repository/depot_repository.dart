@@ -28,14 +28,17 @@ class DepotRepository extends BaseRepository {
   }
 
   Future<String?> getRepositoryIdByNumber(String number) async {
-    var queryParameter = <String, String>{};
-    queryParameter["keys"] = '%5B"$number"%5D';
+    var queryParameter = {'keys': '["$number"]'};
     return backend.requestWithConverter(
         backend.get(
             "stockbuddy/_partition/depot/_design/depot/_view/numberToId",
             queryParameter), (data) {
       if (data["rows"] != null) {
-        return data["rows"]["value"]?.toString();
+        final rows = data["rows"] as List;
+        if (rows.isEmpty) {
+          return null;
+        }
+        return data["rows"][0]["value"].toString();
       }
       throw Exception("No depot found with number $number");
     });

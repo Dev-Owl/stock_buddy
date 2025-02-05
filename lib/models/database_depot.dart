@@ -13,6 +13,10 @@ class DataDepot extends BaseDatabaseModel {
   int totalExports; //total amount of exports
   double totalGainLoss; //from last export sum
   double totalGainLossPercent;
+  @JsonKey(
+    toJson: nullableDateToJson,
+    fromJson: nullableDateFromJson,
+  )
   DateTime? lastExportTime;
 
   DataDepot(

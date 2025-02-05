@@ -12,7 +12,9 @@ import 'package:stock_buddy/screens/report_screen.dart';
   TODO: MIGRATION
   - Migrate depot import to Couchdb
   - Migrate divident import to Couchdb
+  - Find out why ex
   - Migration plan for all other screens
+
   
   TODO: FEATURES
   - Show dividends total in depot line itme screen

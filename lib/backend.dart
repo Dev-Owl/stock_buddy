@@ -48,6 +48,10 @@ class StockBuddyBackend {
     return response;
   }
 
+  String encodeQueryComponent(String queryComponent) {
+    return Uri.encodeQueryComponent(queryComponent);
+  }
+
   String encodePath(String path) {
     return Uri.encodeFull(path);
   }

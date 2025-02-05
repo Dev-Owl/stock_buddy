@@ -13,8 +13,7 @@ import 'package:stock_buddy/widgets/depot_detail_line.dart';
 
 class DepotDetailsLineItems extends StatefulWidget {
   final String depotId;
-  const DepotDetailsLineItems({required this.depotId, Key? key})
-      : super(key: key);
+  const DepotDetailsLineItems({required this.depotId, super.key});
 
   @override
   State<DepotDetailsLineItems> createState() => _DepotDetailsLineItemsState();
@@ -107,7 +106,7 @@ class _DepotDetailsLineItemsState extends State<DepotDetailsLineItems> {
               context: context,
             ),
             CellHelper.number(
-              row.lastWinLossPrecent,
+              row.lastWinLossPercent,
               decoration: '%',
               context: context,
             )

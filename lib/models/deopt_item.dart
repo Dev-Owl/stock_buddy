@@ -5,37 +5,35 @@ part 'deopt_item.g.dart';
 
 @JsonSerializable()
 class DepotItem extends BaseDatabaseModel {
-  final List<String>? tags;
-  final String isin;
-  final String? note;
-  final String name;
-  @JsonKey(name: 'depot_id')
-  final String depotId;
-  @JsonKey(name: 'last_total_value')
-  final double lastTotalValue;
-  @JsonKey(name: 'last_win_loss')
-  final double lastWinLoss;
-  @JsonKey(name: 'last_win_loss_percent')
-  final double lastWinLossPrecent;
-  final bool active;
+  List<String>? tags;
+  String isin;
+  String? note;
+  String name;
+  String depotId;
+  double lastTotalValue;
+  double lastWinLoss;
+  double lastWinLossPercent;
+  bool active;
+  double totalDividends;
+
+  DepotItem({
+    required this.isin,
+    required this.name,
+    required this.depotId,
+    required this.lastTotalValue,
+    required this.lastWinLoss,
+    required this.lastWinLossPercent,
+    required this.active,
+    required this.totalDividends,
+    this.tags,
+    this.note,
+    required String id,
+    String? rev,
+    required DateTime createdAt,
+  }) : super(createdAt, id, rev);
 
   factory DepotItem.fromJson(Map<String, dynamic> json) =>
       _$DepotItemFromJson(json);
-
-  DepotItem(
-    super.createdAt,
-    super.id,
-    super.rev,
-    this.tags,
-    this.isin,
-    this.depotId,
-    this.note,
-    this.name,
-    this.lastTotalValue,
-    this.lastWinLoss,
-    this.lastWinLossPrecent,
-    this.active,
-  );
 
   Map<String, dynamic> toJson() => _$DepotItemToJson(this);
 }

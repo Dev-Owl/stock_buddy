@@ -7,15 +7,15 @@ part of 'export_record.dart';
 // **************************************************************************
 
 ExportRecord _$ExportRecordFromJson(Map<String, dynamic> json) => ExportRecord(
-      DateTime.parse(json['exportTime'] as String),
+      dateFromJson(json['exportTime'] as String),
       json['name'] as String,
       json['number'] as String,
-      DateTime.parse(json['createdAt'] as String),
+      dateFromJson(json['createdAt'] as String),
       json['_id'] as String,
       (json['winLossAmount'] as num).toDouble(),
       (json['winLossPercent'] as num).toDouble(),
       json['depotId'] as String,
-      json['_rev'] as String,
+      json['_rev'] as String?,
       (json['totalSpent'] as num).toDouble(),
       (json['lineItems'] as List<dynamic>)
           .map((e) => ExportLineItem.fromJson(e as Map<String, dynamic>))
@@ -24,10 +24,10 @@ ExportRecord _$ExportRecordFromJson(Map<String, dynamic> json) => ExportRecord(
 
 Map<String, dynamic> _$ExportRecordToJson(ExportRecord instance) =>
     <String, dynamic>{
-      'createdAt': instance.createdAt.toIso8601String(),
+      'createdAt': dateToJson(instance.createdAt),
       '_id': instance.id,
       if (instance.rev case final value?) '_rev': value,
-      'exportTime': instance.exportTime.toIso8601String(),
+      'exportTime': dateToJson(instance.exportTime),
       'name': instance.name,
       'number': instance.number,
       'winLossAmount': instance.winLossAmount,

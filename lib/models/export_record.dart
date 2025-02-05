@@ -6,6 +6,10 @@ part 'export_record.g.dart';
 
 @JsonSerializable()
 class ExportRecord extends BaseDatabaseModel {
+  @JsonKey(
+    toJson: dateToJson,
+    fromJson: dateFromJson,
+  )
   DateTime exportTime;
   String name;
   String number;
@@ -25,7 +29,7 @@ class ExportRecord extends BaseDatabaseModel {
     this.winLossAmount,
     this.winLossPercent,
     this.depotId,
-    String rev,
+    String? rev,
     this.totalSpent,
     this.lineItems,
   ) : super(
